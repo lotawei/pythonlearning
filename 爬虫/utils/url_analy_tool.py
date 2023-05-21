@@ -15,6 +15,8 @@ class Url_Analy_Tool:
 if __name__ == '__main__':
     analytool = Url_Analy_Tool()
     soup =  analytool.analysis_url('https://baidu.com')
+    soup1 =  analytool.analysis_url('https://ipv4.geojs.io/')
     print(soup.find('a'))
-
+    print(soup.find('input'))
+    print(soup1)
         
