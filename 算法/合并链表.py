@@ -28,7 +28,6 @@ list2 = createLinkedList([2,6,7,8,9,11])
 # loggerList(list2)
 def mergenewlist(node1:ListNode,node2:ListNode):
     cursor = ListNode(0)
-    newNode = cursor
     p = node1
     q = node2
     listvalues = []
