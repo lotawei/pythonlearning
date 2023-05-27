@@ -1,7 +1,6 @@
 蚂蚁学Python – 你有没有为写代码拼过命？那你知不知道 人生苦短，我用Python？	http://www.crazyant.net
-selenium的各个浏览器的webdriver的下载地址 – 蚂蚁学Python	http://www.crazyant.net/3324.html
 Python环境搭建-视频课程-机器学习 Sklearn二手车价格预估 – 蚂蚁学Python	http://www.crazyant.net/3341.html
 selenium的各个浏览器的webdriver的下载地址 – 蚂蚁学Python	http://www.crazyant.net/3324.html
+Pycharm中怎样配置Anaconda的虚拟环境解释器 – 蚂蚁学Python	http://www.crazyant.net/3357.html
 Python环境搭建-视频课程-机器学习 Sklearn二手车价格预估 – 蚂蚁学Python	http://www.crazyant.net/3341.html
 selenium的各个浏览器的webdriver的下载地址 – 蚂蚁学Python	http://www.crazyant.net/3324.html
-Linux系统Kill掉包含某个关键词的所有进程命令 – 蚂蚁学Python	http://www.crazyant.net/3322.html

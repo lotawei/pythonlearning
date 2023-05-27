@@ -11,7 +11,7 @@ file_to_open = data_folder / "crawallpages.txt"
 titlepagetext = open(file_to_open,'w')
 while(urlmanager.has_new_url()):
     currenturl = urlmanager.get_url()
-    r = requests.get(currenturl,timeout=3)
+    r = requests.get(currenturl,timeout=8)
     if r.status_code != 200:
         print("error,return status code is not 200",currenturl)
         continue
