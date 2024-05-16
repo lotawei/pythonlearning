@@ -1,5 +1,6 @@
 {
     "python.analysis.extraPaths": [
         "./爬虫/utils"
-    ]
+    ],
+    "vs-code-prettier-eslint.prettierLast": true
 }
