@@ -5,7 +5,7 @@
  * @property {number} right
  * @property {number} bottom
  */
-delayinteval = 4000;
+delayinteval = 2000;
 auto.waitFor();
 if (!auto.service) {
     toast("请开启无障碍服务");
