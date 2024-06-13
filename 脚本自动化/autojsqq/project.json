@@ -1,6 +1,6 @@
 {
-    "name": "新建项目",
-    "main": "main.js",
+    "name": "qqautoadd",
+    "main": "qqadd.js",
     "ignore": [
         "build"
     ],
