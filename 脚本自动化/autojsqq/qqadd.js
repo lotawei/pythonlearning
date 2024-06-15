@@ -6,6 +6,7 @@
 // 5-1.如果备注不在了，程序结束
 // 5-2.如果备注还在，继续加下一个人，只是下一个人不再通过资料页添加，直接走qq空间加人。加人后同样要验证备注是否还在
 "ui";
+auto.waitFor();
 importClass(android.graphics.Paint)
 importClass(android.content.Intent);
 importClass(android.graphics.BitmapFactory);
@@ -46,19 +47,20 @@ var defaultConfig = {
     byredirectQQCount:0,
     byQQZoneCount:0
 }   
-auto.waitFor()
 var  autoScriptThread  = null;
+
 function requestPermission() {
+    // if (auto.service == null) {
+    //     toast("请开启脚本的无障碍服务");
+    //     auto.waitFor();
+    //     return
+    // }
     if (!floaty.checkPermission()) {
         toast("请开启悬浮窗和后台弹出界面权限");
         floaty.requestPermission();
         return
     }
-    if (auto.service == null) {
-        toast("请开启脚本的无障碍服务");
-        auto.waitFor();
-        return
-    }
+ 
 }
 requestPermission();
 const storage = storages.create("logStorage");
@@ -92,22 +94,20 @@ function isEmptyString(str) {
 function buildInputText(key, title, fontSize, hintText, textColor, initalText) {
     return <horizontal paddingLeft="16" paddingRight="16" h='auto'><text text={title} textColor={textColor} textSize={fontSize} textStyle='bold|italic'></text><input id={key} hint={hintText} w="*" h='auto' text={initalText} /></horizontal>
 }
+function buildInputText2(key, title, fontSize, textColor) {
+    return <horizontal paddingLeft="16" paddingRight="16" h='auto'><text id={key} text={title} textColor={textColor} textSize={fontSize} textStyle='bold|italic'></text></horizontal>
+}
+
+
 function buildFileLoad(key, title, fontSize, hintText, textColor, initalText, fileTip, btnId) {
     return <horizontal paddingLeft="16" paddingRight="16" h='auto'><text text={title} textColor={textColor} textSize={fontSize} textStyle='bold|italic'></text><input id={key} hint={hintText} maxWidth={device.width / 2} text={initalText} /><button id={btnId} paddingLeft="8" style="Widget.AppCompat.Button.Widget.AppCompat.Button.Borderless" bg="#00000000" textColor="#0000FF" text={fileTip} w="*"></button></horizontal>
 }
 function buildDrowpLineDelayInterval(){
     return  <horizontal paddingLeft="16">
                 <text textSize="16sp" textStyle='bold|italic'>延迟交互操作(快|中|慢)</text>
-                <spinner id="delaydrop" entries="3000|4000|6000"/>
+                <spinner id="delaydrop" entries="4000|6000|7000"/>
         </horizontal>
 }
-// function buildStartButton(){
-//     return <frame gravity='bottom'>
-//         <horizontal gravity='center'> 
-//         <button id="startbtn" style="Widget.AppCompat.Button.Colored" bg="#ffffff00" text="开始" textColor="#FFFFFF" textStyle='bold' w={`${defaultConfig.btnw}px`} h={`${defaultConfig.btnw}px`} textSize="13sp" />
-//         </horizontal>
-//         </frame>
-// }
 const statusColors = {
     0: "#ff0000",
     1: "#00ff00",
@@ -151,6 +151,7 @@ $ui.layout(
             {buildFileLoad('filePath', 'QQFile:', "12sp", "请选择文件~~~", "#000000", defaultConfig.filePath, "选择文件", "btnselectFile")}
             {buildDrowpLineDelayInterval()}
             {buildWaitQQList()}
+            {buildInputText2("qqcount","", "12sp", "#000000")}
             <text id="result"></text>
             {/* {buildStartButton()} */}
         </vertical>
@@ -292,8 +293,9 @@ function loadFileListByJson(filepath) {
     }
     else if (typeof res === 'string'){
         var  resAdd = res.split("\n")
+        var i = 0;
         qqFirends = resAdd.map((e) => {
-            return {"qq":e}
+            return {"qq":e,"index":i}
         })
         log("txtfileload",qqFirends);
         $ui.waitqqlist.setDataSource(qqFirends);
@@ -302,7 +304,7 @@ function loadFileListByJson(filepath) {
         toastLog('文件格式不正确');
         return;
     }
- 
+    $ui.qqcount.setText(`qq计数：共${qqFirends.length}条`)
 }
 
 activity.getEventEmitter().on("activity_result", (requestCode, resultCode, data) => {
@@ -457,7 +459,7 @@ function retryAddFriendByQQZone(item) {
     if (bakexist) {
         var verifyobj = className("android.widget.EditText").findOne();
         verifyobj.click();
-        sleepSelf(delayinterval);
+        sleepSelf(delayinteval);
         // 设置验证消息
         verifyobj.setText(defaultConfig.requestverifyInfo);
         // 设置备注信息
@@ -592,7 +594,7 @@ function addFriendPageOperation(item) {
         action: "android.intent.action.VIEW",
         data: "mqq://card/show_pslcard?src_type=internal&version=1&uin=" + item.qq,
         packageName: "com.tencent.mobileqq",
- }); 
+    }); 
     //  className("android.widget.Button").desc("返回").findOne().click()
      sleepSelf(delayinteval);
      if(defaultConfig.flagQQZonePorcessAdd){
@@ -623,12 +625,15 @@ function addFriendPageOperation(item) {
             loggerTrace(item.qq,{"code":"failed","msg":"该qq异常无法添加","data":JSON.stringify(item)})
             defaultConfig.index += 1;
         }
-        else{
-            if (className("android.widget.Button").text("加好友").exists() === true){
+        else  if (className("android.widget.Button").text("加好友").exists() === true){
                 className("android.widget.Button").text("加好友").findOne().click()
                 sleepSelf(delayinteval);
                 addFriendPageOperation(item);
-            }
+        }
+        else {
+            className("android.widget.ImageView").clickable(true).click();
+            loggerTrace(item.qq,{"code":"failed","msg":"该qq可能已经是您的好友了"})
+            defaultConfig.index += 1;
         }
       
      }
