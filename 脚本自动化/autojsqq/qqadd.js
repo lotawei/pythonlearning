@@ -133,8 +133,8 @@ function buildWaitQQList() {
                 <View bg= "#00ff00" h="*" w="3" />
                 <vertical padding="5" h="auto" w="0" layout_weight="1">
                     <text text="{{this.qq}}" textColor="#222222" textSize="14sp" textStyle="bold" maxLines="2" />
-                    <text id="requestverifyInfo" text={defaultConfig.requestverifyInfo} textColor="#999999" textSize="9sp" maxLines="2" />
-                    <text id="bakInfo" text={defaultConfig.bakInfo} textColor="#88667755" textSize="9sp" maxLines="2" />
+                    <text id="requestverifyInfo" text="{{this.requestverifyInfo}}" textColor="#999999" textSize="9sp" maxLines="2" />
+                    <text id="bakInfo" text="{{this.bakInfo}}" textColor="#88667755" textSize="9sp" maxLines="2" />
                 </vertical>
                 <button id="delete" style="Widget.AppCompat.Button.Borderless" bg="#FFFFFF" w="auto" h="auto" marginLeft="4" marginRight="6" text="删除" textColor="#ff0000" fontSize="13sp" />
             </horizontal>
@@ -184,7 +184,19 @@ $ui.layout(
 // var bgDrawable = new android.graphics.drawable.GradientDrawable(android.graphics.drawable.GradientDrawable.Orientation.BL_TR, colors);
 // bgDrawable.setShape(android.graphics.drawable.GradientDrawable.OVAL);
 // $ui.startbtn.setBackground(bgDrawable);
+$ui.requestverifyInfo.addTextChangedListener({
+    onTextChanged: function(text) {
+        // 更新默认数据
+        defaultConfig.requestverifyInfo = text;
+    }
+});
 
+$ui.bakInfo.addTextChangedListener({
+    onTextChanged: function(text) {
+        // 更新默认数据
+        defaultConfig.bakInfo = text;
+    }
+});
 $ui.cantact.on("click", () => {
     setClip('TG:@ctqq9');
     toast("已拷贝")
@@ -195,6 +207,7 @@ $ui.triggerQQ.on("click", () => {
             toast("已拷贝")
     }
 });
+
 $ui.waitqqlist.on("item_bind", function (itemView, itemHolder) {
     itemView.delete.on("click", () => {
         let item = itemHolder.item;
@@ -332,7 +345,7 @@ function loadFileListByJson(filepath) {
             var  resAdd = dealRes.split("\n")
             var i = 0;
             qqFirends = resAdd.map((e) => {
-                var data =  {"qq":e,"index":i};
+                var data =  {"qq":e,"index":i,"requestverifyInfo":defaultConfig.requestverifyInfo,"bakInfo":defaultConfig.bakInfo};
                 i += 1;
                 return data
             })
@@ -376,8 +389,8 @@ activity.getEventEmitter().on("activity_result", (requestCode, resultCode, data)
     }
 });
  function startProcess() {
+    $ui.requestverifyInfo.setText(defaultConfig.requestverifyInfo);
     log("processing",defaultConfig.startProcess)
-
     try {
         const inputText = $ui.qqsInput.getText().toString();
         if (!isEmptystr(inputText)) {
@@ -385,7 +398,7 @@ activity.getEventEmitter().on("activity_result", (requestCode, resultCode, data)
             var  resAdd = dealRes.split("\n")
             var i = 0;
             qqFirends = resAdd.map((e) => {
-                var data =  {"qq":e,"index":i};
+                var data =  {"qq":e,"index":i,"requestverifyInfo":defaultConfig.requestverifyInfo,"bakInfo":defaultConfig.bakInfo};
                 i += 1;
                 return data
             })
