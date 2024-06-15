@@ -83,6 +83,23 @@ function sleepSelf(interval) {
     sleep(interval)
 }
 
+function getFormattedTimestamp() {
+    // 获取当前时间戳
+    let now = new Date();
+
+    // 获取各个时间部分
+    let year = now.getFullYear();
+    let month = (now.getMonth() + 1).toString().padStart(2, '0'); // 月份从0开始，因此需要+1
+    let day = now.getDate().toString().padStart(2, '0');
+    let hours = now.getHours().toString().padStart(2, '0');
+    let minutes = now.getMinutes().toString().padStart(2, '0');
+    let seconds = now.getSeconds().toString().padStart(2, '0');
+
+    // 格式化日期时间为 yyyy-mm-dd hh:mm:ss
+    let formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+
+    return formattedDate;
+}
 
 function buildInputText(key, title, fontSize, hintText, textColor, initalText) {
     return <horizontal paddingLeft="16" paddingRight="16" h='auto'><text text={title} textColor={textColor} textSize={fontSize} textStyle='bold|italic'></text><input id={key} hint={hintText} textSize={fontSize} w="*" h='auto' text={initalText} /></horizontal>
@@ -137,9 +154,9 @@ function triggerQQ(){
     if( triqq === null || triqq === undefined){
         return "暂未触发"
     }
-    return triqq.toString()
+    return triqq
 }
-
+const  lastQQTrigger = triggerQQ();
 $ui.layout(
     <frame >
         <vertical>
@@ -150,7 +167,7 @@ $ui.layout(
                     <text paddingLeft="16">~~~😁更多请联系:</text>
                     <text id='cantact' text={defaultConfig.author}></text>
            </horizontal>
-           <text padding="16" id="triggerQQ">上次触发风控的QQ:{triggerQQ()}</text>
+           <text padding="16" id="triggerQQ">上次触发风控的QQ:{lastQQTrigger.time === undefined ? "":lastQQTrigger.time} {lastQQTrigger.qq === undefined ? "暂无":lastQQTrigger.qq}</text>
             {buildInputText('requestverifyInfo', '验证信息（必填）:', "12sp", "请输入验证信息~~~", "#000000", defaultConfig.requestverifyInfo)}
             {buildInputText('bakInfo', '备注:', "12sp", "请输入备注信息~~~", "#000000", defaultConfig.bakInfo)}
             {buildFileLoad('filePath', 'QQFile:', "12sp", "请选择文件~~~", "#000000", defaultConfig.filePath, "选择文件", "btnselectFile")}
@@ -173,16 +190,10 @@ $ui.cantact.on("click", () => {
     toast("已拷贝")
 });
 $ui.triggerQQ.on("click", () => {
-    if(triggerQQ() !== null && triggerQQ() !== undefined){
-        try {
-            setClip(triggerQQ().qq ?? '');
+    if(lastQQTrigger !== null && lastQQTrigger !== undefined){
+            setClip(lastQQTrigger.qq);
             toast("已拷贝")
-        } catch (error) {
-            log('${error}')
-        }
-   
     }
- 
 });
 $ui.waitqqlist.on("item_bind", function (itemView, itemHolder) {
     itemView.delete.on("click", () => {
@@ -585,7 +596,7 @@ function addFriendPageOperation(item) {
                     sleepSelf(delayinteval);
                     if (className("android.widget.EditText").text('输入备注').exists() === true){
                          toastLog("诸事不顺触发风控不易加人😭")
-                         loggerTrace('existQQ',{"qq":item.qq})
+                         loggerTrace('existQQ',{"qq":item.qq,"time":getFormattedTimestamp()})
                          closeApp();
                     }else{
                         defaultConfig.flagQQZonePorcessAdd = true;
@@ -682,10 +693,12 @@ function resetConfig(){
      defaultConfig.byQQZoneCount = 0;
 }
 function returnToHomeScreen() {
-    while (currentActivity() !== "com.tencent.mobileqq.activity.SplashActivity") {
-        log('自动回到主页',currentActivity());
-        back();
-        sleep(delayinteval);
+    if(currentActivity().startsWith("com.tencent.mobileqq")){
+        while (currentActivity() !== "com.tencent.mobileqq.activity.SplashActivity") {
+            log('自动回到主页',currentActivity());
+            back();
+            sleep(delayinteval);
+        }
     }
 }
 function startAddQQ(){
