@@ -686,7 +686,9 @@ function startAddQQ(){
             log("index task",defaultConfig.index)
             processAddFriend(qqFirends[defaultConfig.index])
             log("next task ",qqFirends[defaultConfig.index])
-            returnToHomeScreen()
+            if(index !== qqFirends.length){
+                returnToHomeScreen()
+            }
         }
         loggerTrace("taskfinish",{"code":"finish","msg":"任务完成","data":JSON.stringify({"byAccount":defaultConfig.byredirectQQCount,"byQQZone":defaultConfig.byQQZoneCount,"failCount":defaultConfig.index - defaultConfig.byQQZoneCount - defaultConfig.byredirectQQCount,"total":defaultConfig.index})});
         sleepSelf(delayinteval);
