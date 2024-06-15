@@ -148,7 +148,7 @@ $ui.layout(
             {buildFileLoad('filePath', 'QQFile:', "12sp", "请选择文件~~~", "#000000", defaultConfig.filePath, "选择文件", "btnselectFile")}
             {buildInputText('qqsInput', '手动录入QQ:', "12sp", "请录入qq换行符号分割", "#000000", defaultConfig.qqsInput)}
             {buildDrowpLineDelayInterval()}
-            {buildInputText2("qqcount","", "9sp", "#000000")}
+            {buildInputText2("qqcount","", "12sp", "#000000")}
             {buildWaitQQList()}
             <text id="result"></text>
         </vertical>
@@ -685,7 +685,7 @@ function startAddQQ(){
             log("index task",defaultConfig.index)
             processAddFriend(qqFirends[defaultConfig.index])
             log("next task ",qqFirends[defaultConfig.index])
-            if(index !== qqFirends.length){
+            if(defaultConfig.index !== qqFirends.length){
                 returnToHomeScreen()
             }
         }
@@ -694,9 +694,6 @@ function startAddQQ(){
         $ui.run(() => ui.result.setText(JSON.stringify({"用户直接添加成功数":defaultConfig.byredirectQQCount,"byQQZone":defaultConfig.byQQZoneCount,"failCount":defaultConfig.index - defaultConfig.byQQZoneCount - defaultConfig.byredirectQQCount,"total":defaultConfig.index})));
         autoScriptThread.interrupt();
         defaultConfig.startProcess = false;
-        if(launch('com.script.qqadd')){
-                log('回到主页')
-        }
     } catch (error) {
         log("error",error)
     }
