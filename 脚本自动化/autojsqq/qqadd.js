@@ -45,7 +45,8 @@ var defaultConfig = {
     startProcess: false, 
     flagQQZonePorcessAdd:false, // 是否从QQ空间直接加人 标记决定是否触发风控 触发后就不在加人
     byredirectQQCount:0,
-    byQQZoneCount:0
+    byQQZoneCount:0,
+    qqsInput: "", //
 }   
 var  autoScriptThread  = null;
 
@@ -86,10 +87,6 @@ function sleepSelf(interval) {
     sleep(interval)
 }
 
-
-function isEmptyString(str) {
-    return str === null || str === undefined || str.trim() === '';
-}
 
 function buildInputText(key, title, fontSize, hintText, textColor, initalText) {
     return <horizontal paddingLeft="16" paddingRight="16" h='auto'><text text={title} textColor={textColor} textSize={fontSize} textStyle='bold|italic'></text><input id={key} hint={hintText} w="*" h='auto' text={initalText} /></horizontal>
@@ -144,14 +141,15 @@ $ui.layout(
     <frame >
         <vertical>
             <appbar>
-                <toolbar id="toolbar" title="自动QQ脚本"></toolbar>
+                <toolbar id="toolbar" title="QQ摸人"></toolbar>
             </appbar>
             {buildInputText('requestverifyInfo', '验证信息（必填）:', "12sp", "请输入验证信息~~~", "#000000", defaultConfig.requestverifyInfo)}
             {buildInputText('bakInfo', '备注:', "12sp", "请输入备注信息~~~", "#000000", defaultConfig.bakInfo)}
             {buildFileLoad('filePath', 'QQFile:', "12sp", "请选择文件~~~", "#000000", defaultConfig.filePath, "选择文件", "btnselectFile")}
+            {buildInputText('qqsInput', '手动录入QQ:', "12sp", "请录入qq换行符号分割", "#000000", defaultConfig.qqsInput)}
             {buildDrowpLineDelayInterval()}
+            {buildInputText2("qqcount","", "8sp", "#000000")}
             {buildWaitQQList()}
-            {buildInputText2("qqcount","", "12sp", "#000000")}
             <text id="result"></text>
             {/* {buildStartButton()} */}
         </vertical>
@@ -180,12 +178,14 @@ $ui.waitqqlist.on("item_bind", function (itemView, itemHolder) {
                     qqFirends.splice(index, 1);
                     ui.run(() =>{
                         $ui.waitqqlist.setDataSource(qqFirends);
+                        $ui.qqcount.setText(`qq计数：共${qqFirends.length}条`)
                     })
                 }
             }
             else{
                 ui.run(() =>{
                 $ui.waitqqlist.setDataSource(qqFirends);
+                $ui.qqcount.setText(`qq计数：共${qqFirends.length}条`)
                 });
             }
         });
@@ -197,6 +197,7 @@ $ui.btnselectFile.on('click',  () =>{
         var intent = new Intent();
         intent.setType(fileType);
         intent.setAction(Intent.ACTION_GET_CONTENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
         activity.startActivityForResult(intent, requestCode);
  
 });
@@ -281,30 +282,46 @@ function isValidJson(str) {
         return false;
     }
 }
+function removeExtraSpaces(str) {
+    // 去掉行首和行尾的空格
+    str = str.trim();
+    // 用正则表达式替换多个空格为一个空格，并保留换行符
+    str = str.replace(/[ \t]+/g, ' ').replace(/\n\s+/g, '\n').replace(/\s+\n/g, '\n');
+    return str;
+}
 function loadFileListByJson(filepath) {
-    if (!files.exists(filepath)) {
-        toastLog('File not found');
-        return;
+    try {
+        if (!files.exists(filepath)) {
+            toastLog('File not found');
+            return;
+        }
+        var  res = files.read(filepath)
+        log("源文件",res)
+        if (typeof res === 'string'){
+            var  dealRes = removeExtraSpaces(res)
+            var  resAdd = dealRes.split("\n")
+            var i = 0;
+            qqFirends = resAdd.map((e) => {
+                var data =  {"qq":e,"index":i};
+                i += 1;
+                return data
+            })
+            log("txtfileload",qqFirends);
+            $ui.waitqqlist.setDataSource(qqFirends);
+        }
+        else if(isValidJson(res)){
+            qqFirends = loadQQInfos(res);
+            $ui.waitqqlist.setDataSource(qqFirends);
+        }
+        else{
+            toastLog('文件格式不正确');
+            return;
+        }
+        $ui.qqcount.setText(`qq计数：共${qqFirends.length}条`)
+    } catch (error) {
+        log("文件错误",`${error}`)
     }
-    var  res = files.read(filepath)
-    if(isValidJson(res)){
-        qqFirends = loadQQInfos(res);
-        $ui.waitqqlist.setDataSource(qqFirends);
-    }
-    else if (typeof res === 'string'){
-        var  resAdd = res.split("\n")
-        var i = 0;
-        qqFirends = resAdd.map((e) => {
-            return {"qq":e,"index":i}
-        })
-        log("txtfileload",qqFirends);
-        $ui.waitqqlist.setDataSource(qqFirends);
-    }
-    else{
-        toastLog('文件格式不正确');
-        return;
-    }
-    $ui.qqcount.setText(`qq计数：共${qqFirends.length}条`)
+   
 }
 
 activity.getEventEmitter().on("activity_result", (requestCode, resultCode, data) => {
@@ -330,7 +347,22 @@ activity.getEventEmitter().on("activity_result", (requestCode, resultCode, data)
 });
  function startProcess() {
     log("processing",defaultConfig.startProcess)
+
     try {
+        const inputText = $ui.qqsInput.getText().toString();
+        if (!isEmptystr(inputText)) {
+            var  dealRes = removeExtraSpaces(inputText)
+            var  resAdd = dealRes.split("\n")
+            var i = 0;
+            qqFirends = resAdd.map((e) => {
+                var data =  {"qq":e,"index":i};
+                i += 1;
+                return data
+            })
+            log("手动录入数据",qqFirends);
+            $ui.waitqqlist.setDataSource(qqFirends);
+            $ui.qqcount.setText(`qq计数：共${qqFirends.length}条`)
+        }
         if (defaultConfig.startProcess === true){
             ui.run(() =>toastLog("目前有正在执行的自动化脚本任务，请耐心等待"));
             return;
@@ -339,18 +371,16 @@ activity.getEventEmitter().on("activity_result", (requestCode, resultCode, data)
             toastLog("请输入验证信息")
             return
         }
-        if (qqFirends.length == 0 && isEmptystr(ui.filePath.getText())) {
-            toastLog("请先设置要添加的QQ列表");
+        if (qqFirends.length == 0) {
+            toastLog("请先设置要添加的QQ列表或者手动录入");
             return;
         }
         confirm("开始添加列表中的QQ?")
         .then(sure => {
-            if (sure) {
+            if (sure){
                     autoScriptThread = threads.start(function () {
-                        startAddQQ();
-                    });
-            }else{
-                exit();
+                    startAddQQ();
+               });
             }
         });
     } catch (error) {
@@ -448,7 +478,9 @@ function executeDelayedClosure(closure, delayInSeconds, numberOfExecutions) {
     }, delayInSeconds * 1000);
 }
 function closeApp() {
-    ui.finish()
+    ui.run(() =>{
+        ui.finish()
+    });
 }
 
 
@@ -465,7 +497,7 @@ function retryAddFriendByQQZone(item) {
         // 设置备注信息
         if (className("android.widget.EditText").text('输入备注').exists()) {
             className("android.widget.EditText").text('输入备注').setText(defaultConfig.bakInfo + (defaultConfig.index + 1));
-            sleepSelf(delayinterval);
+            sleepSelf(delayinteval);
         }
         // 点击发送按钮
         className("android.widget.Button").text("发送").findOne().click();
@@ -488,15 +520,6 @@ function addFriendPageOperation(item) {
     var isExistVertify = className("android.widget.EditText").text("输入答案").exists()
     const message = (isExistVertify === true) ? `${item.qq}开启了好友认证` : `${item.qq}未开启可直接加好友`
     if (isExistVertify === true) {
-        sleepSelf(delayinteval);
-        className("android.widget.Button").text("取消").findOne(1000).click();
-        sleepSelf(delayinteval);
-        if (className("android.widget.Button").text("返回").exists()){
-            className("android.widget.Button").text("返回").findOne().click()
-        }
-        if (className("android.widget.Button").desc("返回").exists()){
-            className("android.widget.Button").desc("返回").findOne().click()
-        }
         loggerTrace(item.qq,{"code":"failed","msg":"该qq开启了答案验证无法加此QQ"})
         defaultConfig.index += 1;
         return;
@@ -530,7 +553,6 @@ function addFriendPageOperation(item) {
                 }
                 sleepSelf(delayinteval);
                 if(className("android.widget.TextView").text('加好友').exists() === false){
-                    className("android.widget.ImageView").clickable(true).click();
                     loggerTrace(item.qq,{"code":"failed","msg":"qq空间维护升级或者他的qq空间您无隐私权限查看"})
                     defaultConfig.index += 1;
                     return;
@@ -555,7 +577,7 @@ function addFriendPageOperation(item) {
                 }else{
                     //加失败了遇到网络问题等那么
                     sleepSelf(delayinteval);
-                    className("android.widget.Button").text("取消").findOne().click();
+                    defaultConfig.index += 1;
                 }
             }else{
                 defaultConfig.flagQQZonePorcessAdd = false;
@@ -564,8 +586,6 @@ function addFriendPageOperation(item) {
                 sleepSelf(delayinteval);
             }
         }else{
-            // 有些好友不存在的情况下 qq空间这个号直接跳过
-            className("android.widget.ImageView").clickable(true).click();
             loggerTrace(item.qq,{"code":"failed","msg":"无添加好友按钮可能是你的好友了"})
             defaultConfig.index += 1;
         }
@@ -584,7 +604,7 @@ function addFriendPageOperation(item) {
     }
     log(`第${defaultConfig.index + 1}位选手:${item.qq} 正在添加`)
     sleepSelf(delayinteval);
-    if (isEmptyString(item.qq)) {
+    if (isEmptystr(item.qq)) {
                 toast('列表中存在不规范的数据')
                 defaultConfig.index += 1;
                 return;
@@ -608,20 +628,18 @@ function addFriendPageOperation(item) {
             sleepSelf(delayinteval);
             if (className("android.widget.EditText").text('输入备注').exists() === true){
                  toastLog("诸事不顺触发风控不易加人😭")
-                 exit();
+                 closeApp();
             }else{
                 defaultConfig.flagQQZonePorcessAdd = true;
             }
         }else{
             //加失败了遇到网络问题等那么
             sleepSelf(delayinteval);
-            className("android.widget.Button").text("取消").findOne().click();
+            defaultConfig.index += 1;
         }
      }else{
         // 异常账号检查 异常账号会出现弹窗
         if(className("android.widget.Button").text("确认").exists()){
-            className("android.widget.Button").text("确认").findOne().click()
-            sleepSelf(delayinteval);
             loggerTrace(item.qq,{"code":"failed","msg":"该qq异常无法添加","data":JSON.stringify(item)})
             defaultConfig.index += 1;
         }
@@ -631,8 +649,7 @@ function addFriendPageOperation(item) {
                 addFriendPageOperation(item);
         }
         else {
-            className("android.widget.ImageView").clickable(true).click();
-            loggerTrace(item.qq,{"code":"failed","msg":"该qq可能已经是您的好友了"})
+            loggerTrace(item.qq,{"code":"failed","msg":"该qq可能已经是您的好友了,也可能是您自己"})
             defaultConfig.index += 1;
         }
       
@@ -648,8 +665,9 @@ function resetConfig(){
 }
 function returnToHomeScreen() {
     while (currentActivity() !== "com.tencent.mobileqq.activity.SplashActivity") {
+        log('自动回到主页',currentActivity());
         back();
-        sleep(delayinteval); // 等待一秒再检查
+        sleep(delayinteval);
     }
 }
 function startAddQQ(){
@@ -662,8 +680,7 @@ function startAddQQ(){
     sleepSelf(delayinteval);
     launch("com.tencent.mobileqq");
     sleepSelf(delayinteval);
-    log(currentActivity())
-    console.log("QQ 打开中");
+    log("当前控制器",currentActivity())
     try {
         while(defaultConfig.index < qqFirends.length){
             log("index task",defaultConfig.index)
@@ -672,9 +689,14 @@ function startAddQQ(){
             returnToHomeScreen()
         }
         loggerTrace("taskfinish",{"code":"finish","msg":"任务完成","data":JSON.stringify({"byAccount":defaultConfig.byredirectQQCount,"byQQZone":defaultConfig.byQQZoneCount,"failCount":defaultConfig.index - defaultConfig.byQQZoneCount - defaultConfig.byredirectQQCount,"total":defaultConfig.index})});
+        sleepSelf(delayinteval);
         $ui.run(() => ui.result.setText(JSON.stringify({"用户直接添加成功数":defaultConfig.byredirectQQCount,"byQQZone":defaultConfig.byQQZoneCount,"failCount":defaultConfig.index - defaultConfig.byQQZoneCount - defaultConfig.byredirectQQCount,"total":defaultConfig.index})));
         autoScriptThread.interrupt();
         defaultConfig.startProcess = false;
+        if(launch('com.script.qqadd')){
+                log('回到主页')
+        }
+
     } catch (error) {
         log("error",error)
     }
