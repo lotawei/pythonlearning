@@ -132,6 +132,13 @@ function isEmptystr(str) {
         return false
     }
 }
+function triggerQQ(){
+    const triqq =  storage.get("existQQ")
+    if( triqq === null || triqq === undefined){
+        return "暂未触发"
+    }
+    return triqq.toString()
+}
 
 $ui.layout(
     <frame >
@@ -143,6 +150,7 @@ $ui.layout(
                     <text paddingLeft="16">~~~😁更多请联系:</text>
                     <text id='cantact' text={defaultConfig.author}></text>
            </horizontal>
+           <text padding="16" id="triggerQQ">上次触发风控的QQ:{triggerQQ()}</text>
             {buildInputText('requestverifyInfo', '验证信息（必填）:', "12sp", "请输入验证信息~~~", "#000000", defaultConfig.requestverifyInfo)}
             {buildInputText('bakInfo', '备注:', "12sp", "请输入备注信息~~~", "#000000", defaultConfig.bakInfo)}
             {buildFileLoad('filePath', 'QQFile:', "12sp", "请选择文件~~~", "#000000", defaultConfig.filePath, "选择文件", "btnselectFile")}
@@ -163,6 +171,18 @@ $ui.layout(
 $ui.cantact.on("click", () => {
     setClip('TG:@ctqq9');
     toast("已拷贝")
+});
+$ui.triggerQQ.on("click", () => {
+    if(triggerQQ() !== null && triggerQQ() !== undefined){
+        try {
+            setClip(triggerQQ().qq ?? '');
+            toast("已拷贝")
+        } catch (error) {
+            log('${error}')
+        }
+   
+    }
+ 
 });
 $ui.waitqqlist.on("item_bind", function (itemView, itemHolder) {
     itemView.delete.on("click", () => {
@@ -565,9 +585,8 @@ function addFriendPageOperation(item) {
                     sleepSelf(delayinteval);
                     if (className("android.widget.EditText").text('输入备注').exists() === true){
                          toastLog("诸事不顺触发风控不易加人😭")
-                         ui.run(() => {
-                            closeApp();
-                         })
+                         loggerTrace('existQQ',{"qq":item.qq})
+                         closeApp();
                     }else{
                         defaultConfig.flagQQZonePorcessAdd = true;
                         defaultConfig.byQQZoneCount += 1;
