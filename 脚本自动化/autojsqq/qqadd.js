@@ -47,15 +47,11 @@ var defaultConfig = {
     byredirectQQCount:0,
     byQQZoneCount:0,
     qqsInput: "", //
+    author:'TG:@ctqq9'
 }   
 var  autoScriptThread  = null;
 
 function requestPermission() {
-    // if (auto.service == null) {
-    //     toast("请开启脚本的无障碍服务");
-    //     auto.waitFor();
-    //     return
-    // }
     if (!floaty.checkPermission()) {
         toast("请开启悬浮窗和后台弹出界面权限");
         floaty.requestPermission();
@@ -89,7 +85,7 @@ function sleepSelf(interval) {
 
 
 function buildInputText(key, title, fontSize, hintText, textColor, initalText) {
-    return <horizontal paddingLeft="16" paddingRight="16" h='auto'><text text={title} textColor={textColor} textSize={fontSize} textStyle='bold|italic'></text><input id={key} hint={hintText} w="*" h='auto' text={initalText} /></horizontal>
+    return <horizontal paddingLeft="16" paddingRight="16" h='auto'><text text={title} textColor={textColor} textSize={fontSize} textStyle='bold|italic'></text><input id={key} hint={hintText} textSize={fontSize} w="*" h='auto' text={initalText} /></horizontal>
 }
 function buildInputText2(key, title, fontSize, textColor) {
     return <horizontal paddingLeft="16" paddingRight="16" h='auto'><text id={key} text={title} textColor={textColor} textSize={fontSize} textStyle='bold|italic'></text></horizontal>
@@ -97,7 +93,7 @@ function buildInputText2(key, title, fontSize, textColor) {
 
 
 function buildFileLoad(key, title, fontSize, hintText, textColor, initalText, fileTip, btnId) {
-    return <horizontal paddingLeft="16" paddingRight="16" h='auto'><text text={title} textColor={textColor} textSize={fontSize} textStyle='bold|italic'></text><input id={key} hint={hintText} maxWidth={device.width / 2} text={initalText} /><button id={btnId} paddingLeft="8" style="Widget.AppCompat.Button.Widget.AppCompat.Button.Borderless" bg="#00000000" textColor="#0000FF" text={fileTip} w="*"></button></horizontal>
+    return <horizontal paddingLeft="16" paddingRight="16" h='auto'><text text={title} textColor={textColor} textSize={fontSize} textStyle='bold|italic'></text><input id={key} hint={hintText} textSize={fontSize} maxWidth={device.width / 2} text={initalText} /><button id={btnId} paddingLeft="8" style="Widget.AppCompat.Button.Widget.AppCompat.Button.Borderless" bg="#00000000" textColor="#187218" text={fileTip} w="*"></button></horizontal>
 }
 function buildDrowpLineDelayInterval(){
     return  <horizontal paddingLeft="16">
@@ -121,7 +117,7 @@ function buildWaitQQList() {
                 <vertical padding="5" h="auto" w="0" layout_weight="1">
                     <text text="{{this.qq}}" textColor="#222222" textSize="14sp" textStyle="bold" maxLines="2" />
                     <text id="requestverifyInfo" text={defaultConfig.requestverifyInfo} textColor="#999999" textSize="9sp" maxLines="2" />
-                    <text id="bakInfo" text={defaultConfig.bakInfo} textColor="#88667755" textSize="10sp" maxLines="2" />
+                    <text id="bakInfo" text={defaultConfig.bakInfo} textColor="#88667755" textSize="9sp" maxLines="2" />
                 </vertical>
                 <button id="delete" style="Widget.AppCompat.Button.Borderless" bg="#FFFFFF" w="auto" h="auto" marginLeft="4" marginRight="6" text="删除" textColor="#ff0000" fontSize="13sp" />
             </horizontal>
@@ -143,28 +139,31 @@ $ui.layout(
             <appbar>
                 <toolbar id="toolbar" title="QQ摸人"></toolbar>
             </appbar>
+           <horizontal>
+                    <text paddingLeft="16">~~~😁更多请联系:</text>
+                    <text id='cantact' text={defaultConfig.author}></text>
+           </horizontal>
             {buildInputText('requestverifyInfo', '验证信息（必填）:', "12sp", "请输入验证信息~~~", "#000000", defaultConfig.requestverifyInfo)}
             {buildInputText('bakInfo', '备注:', "12sp", "请输入备注信息~~~", "#000000", defaultConfig.bakInfo)}
             {buildFileLoad('filePath', 'QQFile:', "12sp", "请选择文件~~~", "#000000", defaultConfig.filePath, "选择文件", "btnselectFile")}
             {buildInputText('qqsInput', '手动录入QQ:', "12sp", "请录入qq换行符号分割", "#000000", defaultConfig.qqsInput)}
             {buildDrowpLineDelayInterval()}
-            {buildInputText2("qqcount","", "8sp", "#000000")}
+            {buildInputText2("qqcount","", "9sp", "#000000")}
             {buildWaitQQList()}
             <text id="result"></text>
-            {/* {buildStartButton()} */}
         </vertical>
     </frame>
 );
-// $ui.startbtn.on('click',()=>{
-
-// });
 // 设置圆形按钮的背景和样式
 // var colors = [android.graphics.Color.GREEN, android.graphics.Color.GRAY, android.graphics.Color.BLUE]; // 设置渐变的颜色数组
 // var bgDrawable = new android.graphics.drawable.GradientDrawable(android.graphics.drawable.GradientDrawable.Orientation.BL_TR, colors);
 // bgDrawable.setShape(android.graphics.drawable.GradientDrawable.OVAL);
 // $ui.startbtn.setBackground(bgDrawable);
 
-
+$ui.cantact.on("click", () => {
+    setClip('TG:@ctqq9');
+    toast("已拷贝")
+});
 $ui.waitqqlist.on("item_bind", function (itemView, itemHolder) {
     itemView.delete.on("click", () => {
         let item = itemHolder.item;
@@ -698,7 +697,6 @@ function startAddQQ(){
         if(launch('com.script.qqadd')){
                 log('回到主页')
         }
-
     } catch (error) {
         log("error",error)
     }
