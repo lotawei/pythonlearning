@@ -50,6 +50,7 @@ var defaultConfig = {
     author: 'TG:@ctqq9',
     validCode: "",
     usepwd: 'true',
+    isdebug: true,
 }
 var autoScriptThread = null;
 function requestPermission() {
@@ -111,7 +112,16 @@ function buildInputText(key, title, fontSize, hintText, textColor, initalText) {
     return <horizontal paddingLeft="16" paddingRight="16" h='auto'><text text={title} textColor={textColor} textSize={fontSize} textStyle='bold|italic'></text><input id={key} hint={hintText} textSize={fontSize} w="*" h='auto' text={initalText} /></horizontal>
 }
 function buildInputPWDText(key, title, fontSize, hintText, textColor, initalText) {
-    return <horizontal paddingLeft="16" paddingRight="16" h='auto'><text text={title} textColor={textColor} textSize={fontSize} textStyle='bold|italic'></text><input id={key} hint={hintText} textSize={fontSize} maxWidth={device.width / 2} h='auto' text={initalText} /><button paddingLeft='0s' id='showpwd' w='50px' h='50px' style="Widget.AppCompat.Button.Widget.AppCompat.Button.Borderless" bg="#00000000" textSize="14"></button><button padding='12 0 12 0' minWidth= "150px" style="Widget.AppCompat.Button.Widget.AppCompat.Button.Borderless"  bg="#00000000" textColor="#187218" id='saveksn'>保存</button></horizontal>
+    return <vertical paddingLeft="16" paddingRight="16" h='auto'>
+    <horizontal>
+        <text text={title}  textColor={textColor} textSize={fontSize} textStyle='bold|italic'></text>
+        <input id={key}  hint={hintText} textSize={fontSize} h='auto' maxWidth={device.width / 2} text={initalText} />
+        <button paddingLeft='0s' id='showpwd' w='50px' h='50px' style="Widget.AppCompat.Button.Widget.AppCompat.Button.Borderless" bg="#00000000" textSize="14"></button>
+    </horizontal>
+    <horizontal>
+     <button w='*' padding={`16 0 12 0`}  style="Widget.AppCompat.Button.Widget.AppCompat.Button.Borderless"  bg="#00000000" textColor="#187218" id='saveksn'>保存</button>
+    </horizontal>
+    </vertical>
 }
 function buildInputText2(key, title, fontSize, textColor) {
     return <horizontal paddingLeft="16" paddingRight="16" h='auto'><text id={key} text={title} textColor={textColor} textSize={fontSize} textStyle='bold|italic'></text></horizontal>
@@ -182,7 +192,7 @@ $ui.layout(
             <text  paddingLeft="16" w='*' id='cleardata' textSize="9" textColor="#ff0000">出现重大问题,卡密需再次输入,点击可清理缓存,</text>
             <text padding="16 0 0 0" id="result" h="auto" textSize="9" textStyle='bold' textColor='#BBBBBB'></text>
             <text padding="16 0 0 0" id="triggerQQ" textColor='#BBBBBB' textSize="9">上次触发风控的QQ:{lastQQTrigger.time === undefined ? "" : lastQQTrigger.time} {lastQQTrigger.qq === undefined ? "暂无" : lastQQTrigger.qq}</text>
-            {buildInputPWDText('validCode', '卡密（妥善保存必填）:', "12sp", "请输入卡密~~~", "#000000", defaultConfig.validCode)}
+            {buildInputPWDText('validCode', `卡密(${defaultConfig.isdebug ? "可选":"必填"}):`, "12sp", "请输入卡密~~~", "#000000", defaultConfig.validCode)}
             {buildInputText('requestverifyInfo', '验证信息（必填）:', "12sp", "请输入验证信息~~~", "#000000", defaultConfig.requestverifyInfo)}
             {buildInputText('bakInfo', '备注:', "12sp", "请输入备注信息~~~", "#000000", defaultConfig.bakInfo)}
             {buildFileLoad('filePath', 'QQFile:', "12sp", "请选择文件~~~", "#000000", defaultConfig.filePath, "选择文件", "btnselectFile")}
@@ -459,13 +469,15 @@ activity.getEventEmitter().on("activity_result", (requestCode, resultCode, data)
 function startProcess() {
     $ui.requestverifyInfo.setText(defaultConfig.requestverifyInfo);
     log("processing", defaultConfig.startProcess)
-    var  checkResult = checkValidCode(defaultConfig.validCode);
-    if (!checkResult.isValid) {
-        toastLog(checkResult.message);
-        return
-    }
-    else {
-        storage.put("ksn", defaultConfig.validCode);
+    if (defaultConfig.isdebug){
+        var  checkResult = checkValidCode(defaultConfig.validCode);
+        if (!checkResult.isValid) {
+            toastLog(checkResult.message);
+            return
+        }
+        else {
+            storage.put("ksn", defaultConfig.validCode);
+        }
     }
     try {
         const inputText = $ui.qqsInput.getText().toString();
