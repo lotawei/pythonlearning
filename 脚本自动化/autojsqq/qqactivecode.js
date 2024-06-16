@@ -44,3 +44,4 @@ function validateActivationCode(code) {
         return false; // 激活码无效
     }
 }
+
