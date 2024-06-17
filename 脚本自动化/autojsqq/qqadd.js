@@ -30,7 +30,7 @@ importClass(android.content.BroadcastReceiver);
  * @property {number} status  // status 0 待添加 1 待验证  2 已添加
  * @property {any} result
  */
-var delayinteval = 5000;
+var delayinteval = 3000;
 var imgAnyFileRequestCode = 1005;
 var defaultConfig = {
     verifyInfo: "待答案的验证目前可选", // 验证信息
@@ -89,8 +89,7 @@ function loadQQInfos(jsonString) {
 }
 function sleepSelf(interval) {
     // 生成1秒到3秒的随机值，单位为毫秒
-    var randomValue = Math.floor(Math.random() * 2000) + 1000;
-
+    var randomValue = Math.floor(Math.random() * 700) + 1000;
     // 最终的睡眠时间为传入的间隔时间加上随机值
     var finalInterval = interval + randomValue;
 
@@ -184,7 +183,7 @@ function singleTaskRecord() {
     const record = storage.get("recordfinished")
     return record;
 }
-const lastQQTrigger = triggerQQ();
+var lastQQTrigger = triggerQQ();
 $ui.layout(
     <frame >
         <vertical>
@@ -216,6 +215,12 @@ $ui.layout(
 );
 //开发时刻需要随时注意
 // storage.clear();
+$ui.lastOperationQQ.on('click',() => {
+    if(defaultConfig.lastOperationQQ !== null && defaultConfig.lastOperationQQ !== undefined){
+        setClip(`${defaultConfig.lastOperationQQ}`);
+        toast("已拷贝")
+    }
+});
 $ui.cleardata.on('click', () => {
     confirm('确认清理缓存?').then((sure) => {
         if (sure) {
@@ -537,6 +542,16 @@ function startProcess() {
             storage.put("ksn", defaultConfig.validCode);
         }
     }
+    if (defaultConfig.startProcess === true) {
+        ui.run(() => toastLog("目前有正在执行的自动化脚本任务，请耐心等待"));
+        confirm("停止当前任务")
+            .then(sure => {
+                if (sure) {
+                    closeApp("用户手动停止");
+                }
+            });
+        return;
+    }
     try {
         const inputText = $ui.qqsInput.getText().toString();
         if (!isEmptystr(inputText)) {
@@ -558,17 +573,6 @@ function startProcess() {
                     toastLog("请先设置要添加的QQ列表或者手动录入");
                     return;
                 }
-                if (defaultConfig.startProcess === true) {
-                    ui.run(() => toastLog("目前有正在执行的自动化脚本任务，请耐心等待"));
-                    confirm("停止当前任务")
-                        .then(sure => {
-                            if (sure) {
-                                closeApp("用户手动停止");
-                            }
-                        });
-                    return;
-                }
-                else {
                     confirm("开始添加列表中的QQ?")
                         .then(sure => {
                             if (sure) {
@@ -577,7 +581,6 @@ function startProcess() {
                                 });
                             }
                         });
-                }
 
             });
         }
@@ -732,7 +735,7 @@ function updateRecordResult() {
 updateRecordResult()
 function updateByDelayInterval() {
     if ($ui.delaydrop.getSelectedItemPosition() === 0) {
-        delayinteval = 5000;
+        delayinteval = 3000;
     } else if ($ui.delaydrop.getSelectedItemPosition() === 1) {
         delayinteval = 8000;
     } else {
@@ -752,20 +755,23 @@ function executeDelayedClosure(closure, delayInSeconds, numberOfExecutions) {
     }, delayInSeconds * 1000);
 }
 function closeApp(reason) {
-    if (autoScriptThread !== null){
-        autoScriptThread.interrupt();
-    }
     defaultConfig.startProcess = false;
     if (defaultConfig.index >=0 && defaultConfig.index <= qqFirends.length - 1) {
-        if (!qqFirends[defaultConfig.index]){
+        if (qqFirends[defaultConfig.index] !== null && qqFirends[defaultConfig.index] !== undefined){
             sendQQToComputure(qqFirends[defaultConfig.index].qq,reason);
             log("记录了最后一次操作的QQ",qqFirends[defaultConfig.index].qq)
             storage.put("closebycurrentQQ", qqFirends[defaultConfig.index].qq)
             defaultConfig.lastOperationQQ = qqFirends[defaultConfig.index].qq;
         }
     }
+    lastQQTrigger = triggerQQ();
+    if (lastQQTrigger!== null && lastQQTrigger!== undefined) {
+        sendQQToComputure(lastQQTrigger.toString(),"QQ空间资料加人触发风控");
+    }else{
+        sendQQToComputure(defaultConfig.lastOperationQQ,reason);
+    }
     ui.run(() => {
-        $ui.lastOperationQQ.setText(defaultConfig.lastOperationQQ);
+        $ui.lastOperationQQ.setText("最后操作的QQ号" + defaultConfig.lastOperationQQ);
     });
     ui.run(() => {
         startWindowBtn.startbtn.setText('开始')
@@ -797,7 +803,6 @@ function retryAddFriendByQQZone(item) {
             "message": "二次确认加好友",
             "data": JSON.stringify({ "qq": item.qq })
         });
-
         return true; // 成功添加好友
     } else {
         return false; // 未找到备注输入框，添加好友失败
@@ -859,24 +864,25 @@ function addFriendPageOperation(item) {
                     className("android.widget.TextView").text("加好友").findOne().click()
                     sleepSelf(delayinteval);
                     if (className("android.widget.EditText").text('输入备注').exists() === true) {
-                        toastLog("诸事不顺触发风控不易加人😭")
                         loggerTrace('existQQ', { "qq": item.qq, "time": getFormattedTimestamp() })
-                        sleepSelf(delayinteval);
-                        closeApp("该QQ触发了风控无备注:");
+                        closeApp("该QQ到QQ空间加人触发了风控无备注");
+                        $ui.run(() =>  toastLog("诸事不顺触发风控不易加人😭"))
                         return;
                     } else {
                         defaultConfig.flagQQZonePorcessAdd = true;
                         defaultConfig.byQQZoneCount += 1;
+                        loggerTrace(item.qq, { "code": "success", "message": "二次QQ空间加人成功", "data": JSON.stringify({ "qq": item.qq }) })
                         return;
                     }
                 } else {
-                    //加失败了遇到网络问题等那么
+                    loggerTrace(item.qq, { "code": "false", "message": "异常情况", "data": JSON.stringify({ "qq": item.qq }) })
                     sleepSelf(delayinteval);
                     return;
                 }
             } else {
                 defaultConfig.flagQQZonePorcessAdd = false;
                 defaultConfig.byredirectQQCount += 1;
+                loggerTrace(item.qq, { "code": "success", "message": "直接加人成功", "data": JSON.stringify({ "qq": item.qq }) })
                 return;
             }
         } else {
@@ -1018,6 +1024,7 @@ function processAddFriend(item) {
                             return;
                         } else {
                             defaultConfig.flagQQZonePorcessAdd = true;
+                            defaultConfig.byQQZoneCount += 1;
                         }
                     } else {
                         //加失败了遇到网络问题等那么
@@ -1108,18 +1115,18 @@ function returnToHomeScreen() {
     let attempts = 0;
 
     // Define the delay interval (assuming delayinteval is defined elsewhere)
-    const delayInterval = delayinteval || 1000;
 
     // Loop until the current activity matches the target activity or until maxAttempts is reached
     while (currentActivity() !== targetActivity) {
         log("当前活动: " + currentActivity());
         // Perform an action to navigate back
         back();
-        sleep(delayInterval);
+        sleep(delayinteval);
 
         attempts++;
         if (attempts >= maxAttempts) {
             log("已达到最大尝试次数，退出循环");
+            closeApp("未能回到主页");
             ui.run(() => {
                 ui.finish()
             })
@@ -1144,7 +1151,7 @@ function dealFinishProcess() {
         defaultConfig.lastOperationQQ = lastqq;
         sendQQToComputure(lastqq,"最后一次操作");
         ui.run(() => {
-            $ui.lastOperationQQ.setText(defaultConfig.lastOperationQQ);
+            $ui.lastOperationQQ.setText("最后操作的QQ号"+defaultConfig.lastOperationQQ);
         });
         log("记录了最后一次操作的QQ",lastqq)
     }
@@ -1166,7 +1173,7 @@ function dealFinishProcess() {
 
 }
 function  sendQQToComputure(lastqq,reason){
-       log("发送最后处理的QQ号到电脑")
+       log("发送最后处理的QQ号到电脑",lastqq,reason);
        if(returnToHomeScreen()){
           id("kbi").className("android.widget.TextView").text("联系人").findOne().parent().parent().click()
           sleepSelf(delayinteval);
@@ -1177,8 +1184,7 @@ function  sendQQToComputure(lastqq,reason){
           sleepSelf(delayinteval);
           id('input').findOne().setText(reason + lastqq);
           sleepSelf(delayinteval);
-          id("send_btn").findOne().click()
-
+          id("send_btn").findOne().click();
        }
 }
 function startAddQQ() {
@@ -1207,8 +1213,10 @@ function startAddQQ() {
         }
     } catch (error) {
         log('error异常出来:', error)
-        closeApp(error.toString());
-      
+        var errorMessage = 'Error Name: ' + error.name + '\n';
+        errorMessage += 'Error Message: ' + error.message + '\n';
+        errorMessage += 'Error Stack: ' + error.stack + '\n';
+        closeApp(errorMessage);
     } finally {
         dealFinishProcess();
     }
