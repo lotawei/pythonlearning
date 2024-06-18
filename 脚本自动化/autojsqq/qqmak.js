@@ -80,7 +80,15 @@ function sml_move(qx, qy, zx, zy, time) {
     }
     gesture.apply(null, xxy);
 };
+function sleepSelf(interval) {
+    // 生成1秒到3秒的随机值，单位为毫秒
+    var randomValue = Math.floor(Math.random() * 700) + 1000;
+    // 最终的睡眠时间为传入的间隔时间加上随机值
+    var finalInterval = interval + randomValue;
 
+    // 调用sleep函数进行睡眠
+    sleep(finalInterval);
+}
 function findTabIndex(index){
     if (index < 0 || index > 4) {
         log("Index out of bounds");
@@ -108,6 +116,78 @@ function  testQQAdd(){
 function   clickRightBottomForAddQQ() {
 
 }
+var delayinteval = 3000;
+function returnToHomeScreen() {
+    const maxAttempts = 8;
+    const targetActivity = "com.tencent.mobileqq.activity.SplashActivity";
+    if (currentActivity().startsWith('com.android.launcher')) {
+        return false;
+    }
+    if (currentActivity() === targetActivity) {
+        log("回到了主页");
+        return true;
+    }
+    for (let attempts = 0; attempts < maxAttempts; attempts++) {
+        log("loop找主页" + currentActivity());
+        back();
+        sleep(delayinteval);
+        if (currentActivity() === targetActivity) {
+            log("成功返回主页: " + targetActivity);
+            return true;
+        }
+    }
+    log("已达到最大尝试次数，退出循环");
+    return false;
+}
+function sendQQToComputer(lastqq, reason) {
+    log(`发结果到文件 ${lastqq} ${reason}`);
+    
+    var maxRetries = 1; // 设置最大重试次数
+    var retries = 0;
+
+    while (retries < maxRetries) {
+        if (returnToHomeScreen()) {
+            findTabIndex(3);
+            sleepSelf(delayinteval);
+            if (className("android.widget.TextView").text("设备").clickable(true).exists()) {
+                className("android.widget.TextView").text("设备").findOne(2000).click();
+                sleepSelf(delayinteval);
+                log('找到我的电脑');
+                className("android.widget.FrameLayout").clickable(true).depth(10).findOne().click()
+                // className("android.widget.FrameLayout").clickable(true).depth(6).findOne(2000).click()
+                sleepSelf(delayinteval)
+                sleepSelf(delayinteval);
+                var inputField = id('input').findOne(2000);
+                if (inputField !== null) {
+                    // 判断 reason 的类型并处理
+                    let reasonText = typeof reason === 'object' ? JSON.stringify(reason) : reason;
+                    inputField.setText(reasonText + lastqq + "xxxxxxxx");
+                    sleepSelf(delayinteval);
+                    var sendBtn = id("send_btn").findOne(2000);
+                    if (sendBtn !== null) {
+                        sendBtn.click();
+                        log('信息已发送');
+                        return; // 成功发送后退出函数
+                    } else {
+                        log("找不到发送按钮");
+                    }
+                } else {
+                    log("找不到输入框，无法发送信息", currentActivity());
+                }
+            } else {
+                log("找不到设备Tab");
+            }
+        } else {
+            log("未能返回主页，无法发送QQ号到电脑");
+        }
+        
+        retries++;
+        sleepSelf(delayinteval); // 加入等待时间
+    }
+
+    log("达到最大重试次数，未能发送QQ号到电脑");
+}
+
 function startScript(){
     threads.start(() =>{
         sleep(2000);
@@ -123,11 +203,15 @@ function startScript(){
         // }else{
         //     log("尝试QQ空间加好友未没找到加好友按钮待优化");
         // }
-            if(className("android.widget.TextView").text("加好友").exists()){
-            className("android.widget.TextView").text("加好友").findOne(3000).click()
-        }else{
-            log("尝试QQ空间加好友未没找到加好友按钮待优化");
+
+        if( className("android.widget.FrameLayout").clickable(true).depth(10).exists()){
+            
         }
+        if ( className("android.widget.FrameLayout").clickable(true).depth(6).exists())
+{
+
+}     
+        sendQQToComputer("123123123","我测")
     });
 }
 startScript();
