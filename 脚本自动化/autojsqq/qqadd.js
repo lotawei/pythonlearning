@@ -55,7 +55,7 @@ var defaultConfig = {
     usepwd: 'true',
     isdebug: true,
     lastOperationQQ: "", 
-    findOneTimeOut: 10000,
+    findOneTimeOut: 150000,
     expirationDate:new Date(2024, 9, 30, 0,0,0),
     displayLog: false,
 }
@@ -927,45 +927,58 @@ function addFriendPageOperation(item) {
             className("android.widget.EditText").text('输入备注').setText(`${defaultConfig.bakInfo}${item.index + 1}`)
             sleepSelf(delayinteval);
         }else{
-            log("未找到输入备注 你已加过该QQ")
-
-            return;
+            //有备注也备注下
+            className("android.widget.EditText").depth(4).setText(`${defaultConfig.bakInfo}${item.index + 1}`)
+            sleepSelf(delayinteval);
         }
         className("android.widget.Button").text("发送").findOne(defaultConfig.findOneTimeOut).click()
-        loggerTrace(item.qq, { "code": "success", "message": "操作了加好友首次", "data": JSON.stringify({ "qq": item.qq }) })
-        log("进入check备注流程")
+        log("首次检查备注信息是否备注")
         sleepSelf(delayinteval);
         if (className("android.widget.Button").desc("取消").text("取消").exists()) {
+            log("检查了账号异常性")
             className("android.widget.Button").desc("取消").text("取消").findOne(defaultConfig.findOneTimeOut).click();
             toastLog("该账号被多人举报需要先处理😭~~");
-            closeApp("你的QQ号被举报了");
+            closeApp("你的QQ号被举报了在添加");
             return;
         }
+        loggerTrace(item.qq, { "code": "success", "message": "操作了加好友首次", "data": JSON.stringify({ "qq": item.qq }) })
+        log("账号无异常没弹出警告")
         if (className("android.widget.Button").text("加好友").exists()) {
+            log("加好友按钮存在")
             className("android.widget.Button").text("加好友").findOne(defaultConfig.findOneTimeOut).click();
-            sleepSelf(delayinteval);
-            if (className("android.widget.EditText").text('输入备注').exists() === true) {
-                back();
+            sleepSelf(delayinteval + 3000);
+            log("点击了加好友按钮 检查备注")
+            if(id("bz4").text('输入备注').exists()){
+                back()
                 sleepSelf(delayinteval);
                 log(`未触发风控选手${item.qq}尝试进QQ空间加人}`)
                 if (className("android.widget.LinearLayout").desc('他的QQ空间').exists()) {
                     className("android.widget.LinearLayout").desc('他的QQ空间').findOne(defaultConfig.findOneTimeOut).click();
-                    sleepSelf(delayinteval);
+                    sleepSelf(delayinteval + 3000);
                 }
                 else if (className("android.widget.LinearLayout").desc('她的QQ空间').exists()) {
                     className("android.widget.LinearLayout").desc('她的QQ空间').findOne(defaultConfig.findOneTimeOut).click();
-                    sleepSelf(delayinteval);
+                    sleepSelf(delayinteval + 3000);
                 }
                 if (className("android.widget.TextView").text('加好友').exists() === false) {
                     loggerTrace(item.qq, { "code": "failed", "msg": "qq空间维护升级或者他的qq空间您无隐私权限查看" })
                     return;
                 }
-                className("android.widget.TextView").text("加好友").findOne(defaultConfig.findOneTimeOut).click()
+                if(className("android.widget.TextView").text("加好友").exists()){
+                    className("android.widget.TextView").text("加好友").findOne(defaultConfig.findOneTimeOut).click()
+                }else{
+                    log("未找到加好友按钮待优化");
+                    return;
+                }
                 sleepSelf(delayinteval);
                 //再次尝试加好友
                 if (retryAddFriendByQQZone(item)) {
                     sleepSelf(delayinteval);
-                    className("android.widget.TextView").text("加好友").findOne(defaultConfig.findOneTimeOut).click()
+                    if(className("android.widget.TextView").text("加好友").exists()){
+                        className("android.widget.TextView").text("加好友").findOne(defaultConfig.findOneTimeOut).click()
+                    }else{
+                        log("没找到加好友按钮待优化");
+                    }
                     sleepSelf(delayinteval);
                     if (className("android.widget.EditText").text('输入备注').exists() === true) {
                         loggerTrace('existQQ', { "qq": item.qq, "time": getFormattedTimestamp() })
@@ -985,20 +998,17 @@ function addFriendPageOperation(item) {
                     return;
                 }
             } else {
+                log("检查了备注存在的好友")
                 defaultConfig.flagQQZonePorcessAdd = false;
                 defaultConfig.byredirectQQCount += 1;
                 loggerTrace(item.qq, { "code": "success", "message": "直接加人成功", "data": JSON.stringify({ "qq": item.qq }) })
-                return;
             }
-        } else {
-            loggerTrace(item.qq, { "code": "failed", "msg": "无添加好友按钮可能是你的好友了" })
-            return;
         }
     }
     else {
+        log("进入check备注流7")
         loggerTrace(item.qq, { "code": "failed", "msg": "请重新开始流程", "data": JSON.stringify({ "qq": item.qq }) })
         sleepSelf(delayinteval);
-        return;
     }
 }
 /**
@@ -1063,6 +1073,7 @@ function tagAnalysis(timeout) {
 }
 
 function processAddFriend(item) {
+    var  countwhile = 0;
     if (item === null || item === undefined) {
         toast('列表中存在不规范无法解析')
         return;
@@ -1075,12 +1086,13 @@ function processAddFriend(item) {
     }
     sleepSelf(delayinteval);
     // 从搜索框进0
-    if (returnToHomeScreen()) {
+    if (returnToHomeScreen() && countwhile < 1) {
         sleepSelf(delayinteval);
         log("努力查找")
         if(className('android.widget.Button').desc('搜索框').depth(9).exists() === false){
             id("j_k").className("android.view.View").longClickable(true).findOne(defaultConfig.findOneTimeOut).parent().click()
         }
+        countwhile += 1;
         sleepSelf(delayinteval);
         if (className('android.widget.Button').desc('搜索框').exists()) {
             className('android.widget.Button').desc('搜索框').findOne(defaultConfig.findOneTimeOut).click();
@@ -1115,11 +1127,19 @@ function processAddFriend(item) {
                         className("android.widget.LinearLayout").desc('她的QQ空间').findOne(defaultConfig.findOneTimeOut).click();
                     }
                     sleepSelf(delayinteval);
-                    className("android.widget.TextView").text("加好友").findOne(defaultConfig.findOneTimeOut).click()
+                    if(className("android.widget.TextView").text("加好友").findOne(defaultConfig.findOneTimeOut).exists()){
+                        className("android.widget.TextView").text("加好友").findOne(defaultConfig.findOneTimeOut).click()
+                    }else{
+                        log("还是没找到加好友按钮待优化");
+                    }
                     sleepSelf(delayinteval);
                     if (retryAddFriendByQQZone(item)) {
                         sleepSelf(delayinteval);
-                        className("android.widget.TextView").text("加好友").findOne(defaultConfig.findOneTimeOut).click()
+                        if(className("android.widget.TextView").text("加好友").findOne(defaultConfig.findOneTimeOut).exists()){
+                            className("android.widget.TextView").text("加好友").findOne(defaultConfig.findOneTimeOut).click()
+                        }else{
+                            log("尝试QQ空间加好友未没找到加好友按钮待优化");
+                        }
                         sleepSelf(delayinteval);
                         if (className("android.widget.EditText").text('输入备注').exists() === true) {
                             toastLog("二次资料页诸事不顺触发风控不易加人😭")
@@ -1267,14 +1287,20 @@ function dealFinishProcess() {
 }
 function  sendQQToComputure(lastqq,reason){
         log(`发结果到文件${lastqq}${reason}`);
-        var  count = 0;
-        if(returnToHomeScreen() && count < 1){
-          id("kbi").className("android.widget.TextView").text("联系人").findOne(defaultConfig.findOneTimeOut).parent().parent().click()
+        if(returnToHomeScreen()){
+          className("android.widget.FrameLayout").clickable(true).indexInParent(3).findOne(defaultConfig.findOneTimeOut).click()
           sleepSelf(delayinteval);
-          className("android.widget.TextView").text("设备").findOne(defaultConfig.findOneTimeOut).click()
+          if( className("android.widget.TextView").text("设备").clickable(true).exists()){
+            className("android.widget.TextView").text("设备").findOne(defaultConfig.findOneTimeOut).click()
+          }
           sleepSelf(delayinteval);
-          className("android.widget.FrameLayout").clickable(true).depth(10).findOne(defaultConfig.findOneTimeOut).click()
-          click(bounds.left + 3, bounds.top + 3)
+          log('找到我的电脑')
+          if( className("android.widget.FrameLayout").clickable(true).depth(10).exists()){
+            className("android.widget.FrameLayout").clickable(true).depth(10).findOne(defaultConfig.findOneTimeOut).click()
+          }
+          else if (className("android.widget.FrameLayout").clickable(true).depth(6).exists()){
+            className("android.widget.FrameLayout").clickable(true).depth(6).findOne(defaultConfig.findOneTimeOut).click()
+          }
           sleepSelf(delayinteval);
           var inputField = id('input').findOne(defaultConfig.findOneTimeOut);
           if (inputField !== null) {
@@ -1283,24 +1309,19 @@ function  sendQQToComputure(lastqq,reason){
               inputField.setText(reasonText + lastqq);
               sleepSelf(delayinteval);
               id("send_btn").findOne(defaultConfig.findOneTimeOut).click();
-              count+=1;
               //防止下次被软盘遮挡
               sleepSelf(delayinteval);
               back();
           } 
           else {
               log("找不到输入框，无法发送信息",currentActivity());
+              return;
           }
      
        }
        else {
             log("未能返回主页，无法发送QQ号到电脑");
-            count += 1;
-            if (count <= 1){
-                lauchAppForIndex();
-                sendQQToComputure(lastqq,reason);
-            }
-      
+            return;
         }
 }
 function  lauchAppForIndex(){
@@ -1332,9 +1353,8 @@ function startAddQQ() {
     } catch (error) {
         log('startQQ error异常出来:', error)
         closeApp(error);
-    } finally {
-        dealFinishProcess();
     }
+    dealFinishProcess();
 }
 
 
