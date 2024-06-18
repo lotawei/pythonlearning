@@ -60,7 +60,7 @@ var defaultConfig = {
     usepwd: 'true',
     isdebug: true,
     lastOperationQQ: "", 
-    findOneTimeOut: 6000,
+    findOneTimeOut: 5000,
     expirationDate:new Date(2024, 9, 30, 0,0,0),
     displayLog: false,
 }
@@ -1323,17 +1323,16 @@ function sendQQToComputer(lastqq, reason) {
             if (className("android.widget.TextView").text("设备").clickable(true).exists()) {
                 className("android.widget.TextView").text("设备").findOne(defaultConfig.findOneTimeOut).click();
                 sleepSelf(delayinteval);
-
                 log('找到我的电脑');
+                className("android.widget.AbsListView").clickable(true).depth(5).indexInParent(5).findOne(defaultConfig.findOneTimeOut).click();
+                sleepSelf(delayinteval)
                 sleepSelf(delayinteval);
-
                 var inputField = id('input').findOne(defaultConfig.findOneTimeOut);
                 if (inputField !== null) {
                     // 判断 reason 的类型并处理
                     let reasonText = typeof reason === 'object' ? JSON.stringify(reason) : reason;
                     inputField.setText(reasonText + lastqq);
                     sleepSelf(delayinteval);
-
                     var sendBtn = id("send_btn").findOne(defaultConfig.findOneTimeOut);
                     if (sendBtn !== null) {
                         sendBtn.click();
