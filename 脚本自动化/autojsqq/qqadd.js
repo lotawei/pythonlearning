@@ -1058,7 +1058,6 @@ function tagAnalysis(timeout) {
     log("tagAnalysis ----------");
     var startTime = Date.now();
     var duration = timeout; // 超时时间，单位为毫秒
-
     while (true) {
         var elapsedTime = Date.now() - startTime;
         if (elapsedTime > duration) {
@@ -1090,10 +1089,10 @@ function processAddFriend(item) {
     }
     sleepSelf(delayinteval);
     // 从搜索框进0
-    if (returnToHomeScreen() && countwhile < 1) {
-        sleepSelf(delayinteval);
-        log("努力查找")
+    if(returnToHomeScreen()) {
         findTabIndex(0);
+        sleepSelf(delayinteval);
+        log("努力查找") 
         countwhile += 1;
         sleepSelf(delayinteval);
         if (className('android.widget.Button').desc('搜索框').exists()) {
@@ -1130,15 +1129,13 @@ function processAddFriend(item) {
                     }
                     sleepSelf(delayinteval);
                     gestScorller();
-                    if(className("android.widget.TextView").text("加好友").findOne(defaultConfig.findOneTimeOut).exists()){
+                    if(className("android.widget.TextView").text("加好友").exists()){
                         className("android.widget.TextView").text("加好友").findOne(defaultConfig.findOneTimeOut).click()
-                    }else{
-                        log("还是没找到加好友按钮待优化");
                     }
                     sleepSelf(delayinteval);
                     if (retryAddFriendByQQZone(item)) {
                         sleepSelf(delayinteval);
-                        if(className("android.widget.TextView").text("加好友").findOne(defaultConfig.findOneTimeOut).exists()){
+                        if(className("android.widget.TextView").text("加好友").exists()){
                             className("android.widget.TextView").text("加好友").findOne(defaultConfig.findOneTimeOut).click()
                         }else{
                             log("尝试QQ空间加好友未没找到加好友按钮待优化");
@@ -1319,7 +1316,6 @@ function sendQQToComputer(lastqq, reason) {
         if (returnToHomeScreen()) {
             findTabIndex(3);
             sleepSelf(delayinteval);
-
             if (className("android.widget.TextView").text("设备").clickable(true).exists()) {
                 className("android.widget.TextView").text("设备").findOne(defaultConfig.findOneTimeOut).click();
                 sleepSelf(delayinteval);
