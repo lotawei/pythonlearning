@@ -1,6 +1,11 @@
 "ui";
 auto.waitFor();
 importClass(android.widget.Switch);
+setScreenMetrics(1440,2560);
+devicePeixl = {
+    width: 1440,
+    height: 2560
+}
 // 初始化日志变量
 var logMessages = [];
 
@@ -23,47 +28,82 @@ $ui.layout(
     </vertical>
 );
 
-// 获取 UI 元素
-var toggleSwitch = ui.toggleSwitch;
-var startButton = ui.startButton;
-var statusText = ui.statusText;
-var logContainer = ui.logContainer;
+/**
+ * 贝塞尔曲线
+ * @param {坐标点} ScreenPoint 
+ * @param {偏移量} Offset 
+ */
+function bezier_curves(ScreenPoint, Offset) {
+    cx = 3.0 * (ScreenPoint[1].x - ScreenPoint[0].x);
+    bx = 3.0 * (ScreenPoint[2].x - ScreenPoint[1].x) - cx;
+    ax = ScreenPoint[3].x - ScreenPoint[0].x - cx - bx;
+    cy = 3.0 * (ScreenPoint[1].y - ScreenPoint[0].y);
+    by = 3.0 * (ScreenPoint[2].y - ScreenPoint[1].y) - cy;
+    ay = ScreenPoint[3].y - ScreenPoint[0].y - cy - by;
+    tSquared =Offset * Offset;
+    tCubed = tSquared * Offset;
+    result = {
+        "x": 0,
+        "y": 0
+    };
+    result.x = (ax * tCubed) + (bx * tSquared) + (cx * Offset) + ScreenPoint[0].x;
+    result.y = (ay * tCubed) + (by * tSquared) + (cy * Offset) + ScreenPoint[0].y;
+    return result;
+};
 
-// 更新日志显示
-function updateLog(message) {
-    logMessages.push(message);
-    ui.run(() => {
-        logContainer.removeAllViews();
-        for (var i = 0; i < logMessages.length; i++) {
-            var logText = logMessages[i];
-            logContainer.addView(ui.inflate(<text text={logText} textSize="14sp" textColor="#000000"/>));
-        }
+function sml_move(qx, qy, zx, zy, time) {
+    var xxy = [time];
+    var point = [];
+    var dx0 = {
+        "x": qx,
+        "y": qy
+    };
+    var dx1 = {
+        "x": random(qx - 100, qx + 100),
+        "y": random(qy, qy + 50)
+    };
+    var dx2 = {
+        "x": random(zx - 100, zx + 100),
+        "y": random(zy, zy + 50),
+    };
+    var dx3 = {
+        "x": zx,
+        "y": zy
+    };
+    for (var i = 0; i < 4; i++) {
+        eval("point.push(dx" + i + ")");
+    };
+    for (let i = 0; i < 1; i += 0.08) {
+        let newPoint=bezier_curves(point, i);
+        xxyy = [parseInt(newPoint.x), parseInt(newPoint.y)]
+        xxy.push(xxyy);
+    }
+    gesture.apply(null, xxy);
+};
+
+function  findTableInex(index){
+    log(device.width,device.height)
+   if(className("android.widget.TabWidget").exists()){
+    const  tabs = className("android.widget.TabWidget").findOne(2000).bounds();
+    const x = (devicePeixl.width / 5 * index) / 2.0;
+    const y =  (devicePeixl.height - (tabs.height()/2.0));
+    log(x,y,tabs);
+    click(x,y);
+   }
+}
+function  testQQAdd(){
+    className("android.widget.TextView").text('加好友').findOne().click();
+}
+function startScript(){
+    threads.start(() =>{
+        sleep(2000);
+        launch("com.tencent.mobileqq");
+        sleep(2000);
+        // gesture(1000, [device.width/2, device.height/2], [device.width/2, device.height/2 - 300], [0, 0])
+        // className("androidx.recyclerview.widget.RecyclerView").scrollable(true).findOne().scrollForward()
+        // findTableInex(1);
+        testQQAdd();
     });
 }
+startScript();
 
-// 开关监听事件
-ui.toggleSwitch.setOnCheckedChangeListener(function(view, isChecked) {
-    if (isChecked) {
-        statusText.setText("当前状态：开启");
-        statusText.setTextColor(colors.parseColor("#00FF00"));
-        updateLog("功能已开启");
-    } else {
-        statusText.setText("当前状态：关闭");
-        statusText.setTextColor(colors.parseColor("#FF0000"));
-        updateLog("功能已关闭");
-    }
-});
-
-// 按钮点击事件
-ui.startButton.on("click", function() {
-    if (toggleSwitch.isChecked()) {
-        updateLog("开始执行任务...");
-        // 在这里添加你想执行的任务代码
-    } else {
-        toast("请先开启功能开关");
-        updateLog("尝试开始任务但开关未开启");
-    }
-});
-
-// 示例日志更新
-updateLog("日志初始化完成");

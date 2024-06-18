@@ -18,7 +18,7 @@ importClass(android.content.Intent);
 importClass(android.content.BroadcastReceiver);
 importClass(android.widget.Switch);
 activity.getWindow().setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-
+setScreenMetrics(1440,2560);
 /**
  * @typedef {Object} Rect
  * @property {number} left
@@ -33,6 +33,11 @@ activity.getWindow().setSoftInputMode(android.view.WindowManager.LayoutParams.SO
  * @property {number} status  // status 0 待添加 1 待验证  2 已添加
  * @property {any} result
  */
+//找的设备是 pixel xl 
+devicePeixl = {
+    width: 1440,
+    height: 2560
+}
 var delayinteval = 3000;
 var imgAnyFileRequestCode = 1005;
 var defaultConfig = {
@@ -906,7 +911,10 @@ function retryAddFriendByQQZone(item) {
         return false; // 未找到备注输入框，添加好友失败
     }
 }
-
+function  gestScorller(){
+    gesture(1000, [device.width/2, device.height/2], [device.width/2, device.height/2 - 300], [0, 0])
+    sleepSelf(delayinteval);
+}
 
 function addFriendPageOperation(item) {
     var isExistVertify = className("android.widget.EditText").text("输入答案").exists()
@@ -952,6 +960,7 @@ function addFriendPageOperation(item) {
                 back()
                 sleepSelf(delayinteval);
                 log(`未触发风控选手${item.qq}尝试进QQ空间加人}`)
+                gestScorller();
                 if (className("android.widget.LinearLayout").desc('他的QQ空间').exists()) {
                     className("android.widget.LinearLayout").desc('他的QQ空间').findOne(defaultConfig.findOneTimeOut).click();
                     sleepSelf(delayinteval + 3000);
@@ -960,10 +969,7 @@ function addFriendPageOperation(item) {
                     className("android.widget.LinearLayout").desc('她的QQ空间').findOne(defaultConfig.findOneTimeOut).click();
                     sleepSelf(delayinteval + 3000);
                 }
-                if (className("android.widget.TextView").text('加好友').exists() === false) {
-                    loggerTrace(item.qq, { "code": "failed", "msg": "qq空间维护升级或者他的qq空间您无隐私权限查看" })
-                    return;
-                }
+                gestScorller();
                 if(className("android.widget.TextView").text("加好友").exists()){
                     className("android.widget.TextView").text("加好友").findOne(defaultConfig.findOneTimeOut).click()
                 }else{
@@ -976,8 +982,6 @@ function addFriendPageOperation(item) {
                     sleepSelf(delayinteval);
                     if(className("android.widget.TextView").text("加好友").exists()){
                         className("android.widget.TextView").text("加好友").findOne(defaultConfig.findOneTimeOut).click()
-                    }else{
-                        log("没找到加好友按钮待优化");
                     }
                     sleepSelf(delayinteval);
                     if (className("android.widget.EditText").text('输入备注').exists() === true) {
@@ -1089,9 +1093,7 @@ function processAddFriend(item) {
     if (returnToHomeScreen() && countwhile < 1) {
         sleepSelf(delayinteval);
         log("努力查找")
-        if(className('android.widget.Button').desc('搜索框').depth(9).exists() === false){
-            id("j_k").className("android.view.View").longClickable(true).findOne(defaultConfig.findOneTimeOut).parent().click()
-        }
+        findTableInex(1);
         countwhile += 1;
         sleepSelf(delayinteval);
         if (className('android.widget.Button').desc('搜索框').exists()) {
@@ -1127,6 +1129,7 @@ function processAddFriend(item) {
                         className("android.widget.LinearLayout").desc('她的QQ空间').findOne(defaultConfig.findOneTimeOut).click();
                     }
                     sleepSelf(delayinteval);
+                    gestScorller();
                     if(className("android.widget.TextView").text("加好友").findOne(defaultConfig.findOneTimeOut).exists()){
                         className("android.widget.TextView").text("加好友").findOne(defaultConfig.findOneTimeOut).click()
                     }else{
@@ -1167,6 +1170,7 @@ function processAddFriend(item) {
                     else if (className("android.widget.Button").text("加好友").exists() === true) {
                         className("android.widget.Button").text("加好友").findOne(defaultConfig.findOneTimeOut).click()
                         sleepSelf(delayinteval);
+                        gestScorller();
                         addFriendPageOperation(item);
                     }
                     else if (className("android.widget.FrameLayout").text("没有搜索到相关结果")) {
@@ -1285,22 +1289,26 @@ function dealFinishProcess() {
     log(taskFinish)
     resetConfig();
 }
+function  findTableInex(index){
+    log(device.width,device.height)
+   if(className("android.widget.TabWidget").exists()){
+    const  tabs = className("android.widget.TabWidget").findOne(2000).bounds();
+    const x = (devicePeixl.width / 5 * index) / 2.0;
+    const y =  (devicePeixl.height - (tabs.height()/2.0));
+    log(x,y,tabs);
+    click(x,y);
+   }
+}
 function  sendQQToComputure(lastqq,reason){
         log(`发结果到文件${lastqq}${reason}`);
         if(returnToHomeScreen()){
-          className("android.widget.FrameLayout").clickable(true).indexInParent(3).findOne(defaultConfig.findOneTimeOut).click()
+            findTableInex(4)
           sleepSelf(delayinteval);
           if( className("android.widget.TextView").text("设备").clickable(true).exists()){
             className("android.widget.TextView").text("设备").findOne(defaultConfig.findOneTimeOut).click()
           }
           sleepSelf(delayinteval);
           log('找到我的电脑')
-          if( className("android.widget.FrameLayout").clickable(true).depth(10).exists()){
-            className("android.widget.FrameLayout").clickable(true).depth(10).findOne(defaultConfig.findOneTimeOut).click()
-          }
-          else if (className("android.widget.FrameLayout").clickable(true).depth(6).exists()){
-            className("android.widget.FrameLayout").clickable(true).depth(6).findOne(defaultConfig.findOneTimeOut).click()
-          }
           sleepSelf(delayinteval);
           var inputField = id('input').findOne(defaultConfig.findOneTimeOut);
           if (inputField !== null) {
