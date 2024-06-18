@@ -1324,14 +1324,14 @@ function sendQQToComputer(lastqq, reason) {
                 className("android.widget.TextView").text("设备").findOne(defaultConfig.findOneTimeOut).click();
                 sleepSelf(delayinteval);
                 log('找到我的电脑');
-                className("android.widget.AbsListView").clickable(true).depth(5).indexInParent(5).findOne(defaultConfig.findOneTimeOut).click();
+                className("android.widget.FrameLayout").clickable(true).depth(6).findOne(defaultConfig.findOneTimeOut).click()
                 sleepSelf(delayinteval)
                 sleepSelf(delayinteval);
                 var inputField = id('input').findOne(defaultConfig.findOneTimeOut);
                 if (inputField !== null) {
                     // 判断 reason 的类型并处理
                     let reasonText = typeof reason === 'object' ? JSON.stringify(reason) : reason;
-                    inputField.setText(reasonText + lastqq);
+                    inputField.setText(reasonText + lastqq + getFormattedTimestamp());
                     sleepSelf(delayinteval);
                     var sendBtn = id("send_btn").findOne(defaultConfig.findOneTimeOut);
                     if (sendBtn !== null) {
