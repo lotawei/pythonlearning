@@ -118,7 +118,12 @@ function startScript(){
         findTabIndex(3);
         // testQQAdd();
         //1175280471
-        if(className("android.widget.TextView").text("加好友").findOne(3000).exists()){
+        // if(className("android.widget.TextView").text("加好友").findOne(3000).exists()){
+        //     className("android.widget.TextView").text("加好友").findOne(3000).click()
+        // }else{
+        //     log("尝试QQ空间加好友未没找到加好友按钮待优化");
+        // }
+            if(className("android.widget.TextView").text("加好友").exists()){
             className("android.widget.TextView").text("加好友").findOne(3000).click()
         }else{
             log("尝试QQ空间加好友未没找到加好友按钮待优化");

@@ -972,9 +972,6 @@ function addFriendPageOperation(item) {
                 gestScorller();
                 if(className("android.widget.TextView").text("加好友").exists()){
                     className("android.widget.TextView").text("加好友").findOne(defaultConfig.findOneTimeOut).click()
-                }else{
-                    log("未找到加好友按钮待优化");
-                    return;
                 }
                 sleepSelf(delayinteval);
                 //再次尝试加好友
