@@ -111,9 +111,11 @@ function startScript(){
         launch("com.tencent.mobileqq");
         sleep(2000);
         // gesture(1000, [device.width/2, device.height/2], [device.width/2, device.height/2 - 300], [0, 0])
-        // className("androidx.recyclerview.widget.RecyclerView").scrollable(true).findOne().scrollForward()
-        findTabIndex(3);
+        // // className("androidx.recyclerview.widget.RecyclerView").scrollable(true).findOne().scrollForward()
+        // findTabIndex(3);
         // testQQAdd();
+        var sendBtn = id("send_btn").findOne(2000).click();
+        log(sendBtn);
     });
 }
 startScript();

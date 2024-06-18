@@ -18,7 +18,7 @@ importClass(android.content.Intent);
 importClass(android.content.BroadcastReceiver);
 importClass(android.widget.Switch);
 activity.getWindow().setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-setScreenMetrics(1440, 2560);
+// setScreenMetrics(1440, 2560);
 /**
  * @typedef {Object} Rect
  * @property {number} left
@@ -1060,7 +1060,11 @@ function processAddFriend(item) {
     sleepSelf(delayinteval);
     // 从搜索框进0
     if (returnToHomeScreen()) {
-        findTabIndex(0);
+        // findTabIndex(0);
+        if ( className("android.widget.RelativeLayout").clickable(true).exists()){
+            id("j_k").className("android.view.View").longClickable(true).findOne().parent().click()
+        }
+    
         sleepSelf(delayinteval);
         log("努力查找");
         sleepSelf(delayinteval);
@@ -1278,7 +1282,10 @@ function sendQQToComputer(lastqq, reason) {
 
     while (retries < maxRetries) {
         if (returnToHomeScreen()) {
-            findTabIndex(3);
+            // findTabIndex(3);
+            if(id("kbi").className("android.widget.TextView").text("联系人").exists()){
+                id("kbi").className("android.widget.TextView").text("联系人").findOne().parent().parent().click()
+            }
             sleepSelf(delayinteval);
             if (className("android.widget.TextView").text("设备").clickable(true).exists()) {
                 className("android.widget.TextView").text("设备").findOne(defaultConfig.findOneTimeOut).click();
@@ -1291,19 +1298,17 @@ function sendQQToComputer(lastqq, reason) {
                 if (className("android.widget.FrameLayout").clickable(true).depth(6).exists()) {
                     className("android.widget.FrameLayout").clickable(true).depth(6).findOne(defaultConfig.findOneTimeOut).click();
                 }
-                var inputField = id('input').findOne(defaultConfig.findOneTimeOut);
-                if (inputField !== null) {
+                if (id('input').exists()) {
                     // 判断 reason 的类型并处理
                     let reasonText = typeof reason === 'object' ? JSON.stringify(reason) : reason;
-                    inputField.setText(reasonText + lastqq);
+                    id('input').findOne(defaultConfig.findOneTimeOut).setText(reasonText + lastqq);
                     sleepSelf(delayinteval);
-                    var sendBtn = id("send_btn").findOne(defaultConfig.findOneTimeOut);
-                    if (sendBtn !== null) {
-                        sendBtn.click();
-                        log('信息已发送');
-                        return; // 成功发送后退出函数
-                    } else {
+                    back(); //消除软键盘
+                    if (id("send_btn").exists()){
+                        id("send_btn").findOne(defaultConfig.findOneTimeOut)
+                    }else {
                         log("找不到发送按钮");
+
                     }
                 } else {
                     log("找不到输入框，无法发送信息", currentActivity());
