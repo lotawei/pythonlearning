@@ -81,15 +81,26 @@ function sml_move(qx, qy, zx, zy, time) {
     gesture.apply(null, xxy);
 };
 
-function  findTableInex(index){
-    log(device.width,device.height)
-   if(className("android.widget.TabWidget").exists()){
-    const  tabs = className("android.widget.TabWidget").findOne(2000).bounds();
-    const x = (devicePeixl.width / 5 * index) / 2.0;
-    const y =  (devicePeixl.height - (tabs.height()/2.0));
-    log(x,y,tabs);
-    click(x,y);
-   }
+function findTabIndex(index){
+    if (index < 0 || index > 4) {
+        log("Index out of bounds");
+        return;
+    }
+    
+    log(device.width, device.height);
+    
+    if (className("android.widget.TabWidget").exists()) {
+        const tabs = className("android.widget.TabWidget").findOne(2000).bounds();
+        
+        // 正确的x坐标计算
+        const x = device.width / 5 * index + device.width / 10;
+        const y = device.height - tabs.height() / 2.0;
+        
+        log(x, y, tabs);
+        click(x, y);
+    } else {
+        log("TabWidget not found");
+    }
 }
 function  testQQAdd(){
     className("android.widget.TextView").text('加好友').findOne().click();
@@ -101,8 +112,8 @@ function startScript(){
         sleep(2000);
         // gesture(1000, [device.width/2, device.height/2], [device.width/2, device.height/2 - 300], [0, 0])
         // className("androidx.recyclerview.widget.RecyclerView").scrollable(true).findOne().scrollForward()
-        // findTableInex(1);
-        testQQAdd();
+        findTabIndex(3);
+        // testQQAdd();
     });
 }
 startScript();

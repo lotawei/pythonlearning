@@ -60,7 +60,7 @@ var defaultConfig = {
     usepwd: 'true',
     isdebug: true,
     lastOperationQQ: "", 
-    findOneTimeOut: 150000,
+    findOneTimeOut: 6000,
     expirationDate:new Date(2024, 9, 30, 0,0,0),
     displayLog: false,
 }
@@ -852,7 +852,7 @@ function executeDelayedClosure(closure, delayInSeconds, numberOfExecutions) {
     }, delayInSeconds * 1000);
 }
 function processLastTrigger(qq,title) {
-    sendQQToComputure(qq, title);
+    sendQQToComputer(qq, title);
 }
 
 function closeApp(reason) {
@@ -864,7 +864,7 @@ function closeApp(reason) {
         let qqFriend = qqFirends[defaultConfig.index];
         if (qqFriend !== null && qqFriend !== undefined) {
             // 发送QQ信息到电脑
-            sendQQToComputure(qqFriend.qq, reason);
+            sendQQToComputer(qqFriend.qq, reason);
 
             // 记录最后一次操作的QQ号
             log("记录了最后一次操作的QQ", qqFriend.qq);
@@ -1093,7 +1093,7 @@ function processAddFriend(item) {
     if (returnToHomeScreen() && countwhile < 1) {
         sleepSelf(delayinteval);
         log("努力查找")
-        findTableInex(1);
+        findTabIndex(0);
         countwhile += 1;
         sleepSelf(delayinteval);
         if (className('android.widget.Button').desc('搜索框').exists()) {
@@ -1266,7 +1266,7 @@ function dealFinishProcess() {
         var  lastqq = qqFirends[defaultConfig.index - 1].qq;
         storage.put("closebycurrentQQ", lastqq)
         defaultConfig.lastOperationQQ = lastqq;
-        sendQQToComputure(lastqq,"最后一次操作");
+        sendQQToComputer(lastqq,"最后一次操作");
         ui.run(() => {
             $ui.lastOperationQQ.setText("最后操作的QQ号"+defaultConfig.lastOperationQQ);
         });
@@ -1289,49 +1289,76 @@ function dealFinishProcess() {
     log(taskFinish)
     resetConfig();
 }
-function  findTableInex(index){
-    log(device.width,device.height)
-   if(className("android.widget.TabWidget").exists()){
-    const  tabs = className("android.widget.TabWidget").findOne(2000).bounds();
-    const x = (devicePeixl.width / 5 * index) / 2.0;
-    const y =  (devicePeixl.height - (tabs.height()/2.0));
-    log(x,y,tabs);
-    click(x,y);
-   }
+function findTabIndex(index){
+    if (index < 0 || index > 4) {
+        log("Index out of bounds");
+        return;
+    }
+    log(device.width, device.height);
+    
+    if (className("android.widget.TabWidget").exists()) {
+        const tabs = className("android.widget.TabWidget").findOne(2000).bounds();
+        
+        // 正确的x坐标计算
+        const x = device.width / 5 * index + device.width / 10;
+        const y = device.height - tabs.height() / 2.0;
+        
+        log(x, y, tabs);
+        click(x, y);
+    } else {
+        log("TabWidget not found");
+    }
 }
-function  sendQQToComputure(lastqq,reason){
-        log(`发结果到文件${lastqq}${reason}`);
-        if(returnToHomeScreen()){
-            findTableInex(4)
-          sleepSelf(delayinteval);
-          if( className("android.widget.TextView").text("设备").clickable(true).exists()){
-            className("android.widget.TextView").text("设备").findOne(defaultConfig.findOneTimeOut).click()
-          }
-          sleepSelf(delayinteval);
-          log('找到我的电脑')
-          sleepSelf(delayinteval);
-          var inputField = id('input').findOne(defaultConfig.findOneTimeOut);
-          if (inputField !== null) {
-              // 判断 reason 的类型并处理
-              let reasonText = typeof reason === 'object' ? JSON.stringify(reason) : reason;
-              inputField.setText(reasonText + lastqq);
-              sleepSelf(delayinteval);
-              id("send_btn").findOne(defaultConfig.findOneTimeOut).click();
-              //防止下次被软盘遮挡
-              sleepSelf(delayinteval);
-              back();
-          } 
-          else {
-              log("找不到输入框，无法发送信息",currentActivity());
-              return;
-          }
-     
-       }
-       else {
+function sendQQToComputer(lastqq, reason) {
+    log(`发结果到文件 ${lastqq} ${reason}`);
+    
+    var maxRetries = 1; // 设置最大重试次数
+    var retries = 0;
+
+    while (retries < maxRetries) {
+        if (returnToHomeScreen()) {
+            findTabIndex(3);
+            sleepSelf(delayinteval);
+
+            if (className("android.widget.TextView").text("设备").clickable(true).exists()) {
+                className("android.widget.TextView").text("设备").findOne(defaultConfig.findOneTimeOut).click();
+                sleepSelf(delayinteval);
+
+                log('找到我的电脑');
+                sleepSelf(delayinteval);
+
+                var inputField = id('input').findOne(defaultConfig.findOneTimeOut);
+                if (inputField !== null) {
+                    // 判断 reason 的类型并处理
+                    let reasonText = typeof reason === 'object' ? JSON.stringify(reason) : reason;
+                    inputField.setText(reasonText + lastqq);
+                    sleepSelf(delayinteval);
+
+                    var sendBtn = id("send_btn").findOne(defaultConfig.findOneTimeOut);
+                    if (sendBtn !== null) {
+                        sendBtn.click();
+                        log('信息已发送');
+                        return; // 成功发送后退出函数
+                    } else {
+                        log("找不到发送按钮");
+                    }
+                } else {
+                    log("找不到输入框，无法发送信息", currentActivity());
+                }
+            } else {
+                log("找不到设备Tab");
+            }
+        } else {
             log("未能返回主页，无法发送QQ号到电脑");
-            return;
         }
+        
+        retries++;
+        sleepSelf(delayinteval); // 加入等待时间
+    }
+
+    log("达到最大重试次数，未能发送QQ号到电脑");
 }
+
 function  lauchAppForIndex(){
     sleepSelf(delayinteval);
     home();
