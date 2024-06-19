@@ -28,6 +28,8 @@ $ui.layout(
     </vertical>
 );
 
+
+
 /**
  * 贝塞尔曲线
  * @param {坐标点} ScreenPoint 
@@ -105,18 +107,92 @@ function findTabIndex(index){
 function  testQQAdd(){
     className("android.widget.TextView").text('加好友').findOne().click();
 }
+var  athread = null;
+var  index = 0;
+var  arrrp = [1,3,2,34,123,12,3];
+var  isprocessing = false;
+var  taskTimeout = 120 * 1000;
+function dotask(index){
+    if(athread !== null && athread.isAlive && isprocessing){
+        isprocessing = true;
+        const iten = `do task+${index}`;
+        log('默认执行任务中',iten);
+        ui.run(() =>{
+            ui.statusText.setText(iten);
+        })
+        sleep(2000);
+        log('执行任务中')
+    }
+    else{
+        log('dofinish task')
+    }
+}   
+ui.startButton.on('click', function() {
+    confirm('关闭脚本').then(function(res) {
+        if (res) {
+            if (athread !== null && athread.isAlive) {
+                isprocessing = false;
+                try {
+                    athread.interrupt();
+                    ui.run(() => {
+                        toastLog(`执行这个任务被中断了${arrrp[index]}`)
+                    });
+                } catch (error) {
+                    log('线程中断时出现错误:', error);
+                }
+            }
+        }
+    }).catch(function(error) {
+        log('Promise被拒绝:', error);
+    });
+});
 function startScript(){
-    threads.start(() =>{
+    athread =   threads.start(() =>{
         sleep(2000);
         launch("com.tencent.mobileqq");
         sleep(2000);
+        while(index < arrrp.length  ){
+            log('执行任务中')
+            dotask(arrrp[arrrp[index]]);
+            index+=1;
+            sleep(1000);
+        }
+        var startTime = new Date().getTime(); 
+        while (athread.isAlive()) {
+            log('主线程正在等待子线程完成...');
+            sleep(1000);  // 每隔2秒检查一次子线程状态
+            var currentTime = new Date().getTime();
+            if (currentTime - startTime > taskTimeout) {
+                log('超时，正在中断子线程...');
+                athread.interrupt(); // 中断子线程
+                break; // 退出循环
+            }
+        }
+        log('脚本执行结束');
+        // if (id('input').exists()) {
+        //     if (id("send_btn").exists()){
+        //         id("send_btn").findOne(2000)
+        //     }else {
+        //         log("找不到发送按钮");
+
+        //     }
+        // }
         // gesture(1000, [device.width/2, device.height/2], [device.width/2, device.height/2 - 300], [0, 0])
         // // className("androidx.recyclerview.widget.RecyclerView").scrollable(true).findOne().scrollForward()
         // findTabIndex(3);
         // testQQAdd();
-        var sendBtn = id("send_btn").findOne(2000).click();
-        log(sendBtn);
+        // var sendBtn = id("send_btn").findOne(2000).click();
+        // log(sendBtn);
+        // id('sss').findOne(2000).exists() //crash  八错
+        
+          // app.startActivity({
+    //     action: "android.intent.action.VIEW",
+    //     data: "mqq://card/show_pslcard?src_type=internal&version=1&uin=" + item.qq,
+    //     packageName: "com.tencent.mobileqq",
+    // }); 
     });
+
 }
 startScript();
+
 
