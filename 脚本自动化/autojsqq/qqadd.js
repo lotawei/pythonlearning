@@ -1360,6 +1360,7 @@ function sendQQToComputer(lastqq, reason) {
 }
 
 function lauchAppForIndex() {
+    sleep(500);
     home();
     sleepSelf(delayinteval - 2000);
     launch("com.tencent.mobileqq");
