@@ -1340,13 +1340,8 @@ function sendQQToComputer(lastqq, reason) {
                 var  bounds =   className("android.widget.TextView").text('我的电脑').findOne(defaultConfig.findOneTimeOut).bounds();
                 click(bounds.left,bounds.bottom + 120);
                 sleepSelf(delayinteval);
-                if (className("android.widget.Button").text("发送").exists()) {
-                    className("android.widget.Button").text("发送").findOne(defaultConfig.findOneTimeOut)
-                    return
-                }
                 if (id("send_btn").exists()) {
                     id("send_btn").findOne(defaultConfig.findOneTimeOut).click()
-                    return
                 }
             } else {
                 log("找不到输入框，无法发送信息", currentActivity());
