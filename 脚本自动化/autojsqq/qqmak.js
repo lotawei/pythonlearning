@@ -146,51 +146,87 @@ ui.startButton.on('click', function() {
         log('Promise被拒绝:', error);
     });
 });
+function scrollDown() {
+    // 模拟从屏幕中间向上滑动
+    swipe(device.width / 2, device.height / 2, device.width / 2, device.height / 4, 500);
+}
+var imm = context.getSystemService(android.content.Context.INPUT_METHOD_SERVICE);
+imm.toggleSoftInput(0, android.view.inputmethod.InputMethodManager.HIDE_NOT_ALWAYS);
+
 function startScript(){
-    athread =   threads.start(() =>{
-        sleep(2000);
+    athread = threads.start(() =>{
         launch("com.tencent.mobileqq");
         sleep(2000);
-        while(index < arrrp.length  ){
-            log('执行任务中')
-            dotask(arrrp[arrrp[index]]);
-            index+=1;
-            sleep(1000);
+        if (className("android.widget.FrameLayout").clickable(true).depth(10).exists()) {
+            className("android.widget.FrameLayout").clickable(true).depth(10).findOne(2000).click();
         }
-        var startTime = new Date().getTime(); 
-        while (athread.isAlive()) {
-            log('主线程正在等待子线程完成...');
-            sleep(1000);  // 每隔2秒检查一次子线程状态
-            var currentTime = new Date().getTime();
-            if (currentTime - startTime > taskTimeout) {
-                log('超时，正在中断子线程...');
-                athread.interrupt(); // 中断子线程
-                break; // 退出循环
-            }
+        if (className("android.widget.FrameLayout").clickable(true).depth(6).exists()) {
+            className("android.widget.FrameLayout").clickable(true).depth(6).findOne(2000).click();
         }
-        log('脚本执行结束');
-        // if (id('input').exists()) {
-        //     if (id("send_btn").exists()){
-        //         id("send_btn").findOne(2000)
-        //     }else {
-        //         log("找不到发送按钮");
+        sleep(2000);
 
-        //     }
-        // }
-        // gesture(1000, [device.width/2, device.height/2], [device.width/2, device.height/2 - 300], [0, 0])
-        // // className("androidx.recyclerview.widget.RecyclerView").scrollable(true).findOne().scrollForward()
-        // findTabIndex(3);
-        // testQQAdd();
-        // var sendBtn = id("send_btn").findOne(2000).click();
-        // log(sendBtn);
-        // id('sss').findOne(2000).exists() //crash  八错
-        
-          // app.startActivity({
-    //     action: "android.intent.action.VIEW",
-    //     data: "mqq://card/show_pslcard?src_type=internal&version=1&uin=" + item.qq,
-    //     packageName: "com.tencent.mobileqq",
-    // }); 
+        if (className("android.widget.EditText").exists()) {
+            // 判断 reason 的类型并处理
+            className("android.widget.EditText").findOne(2000).setText("12312321");
+            sleep(2000);
+            var  bounds =   className("android.widget.TextView").text('我的电脑').findOne(2000).bounds();
+            click(bounds.left,bounds.bottom + 120);
+            sleep(1000)
+            if (className("android.widget.Button").text("发送").exists()) {
+                // id("send_btn").findOne().click()
+                className("android.widget.Button").text("发送").findOne(2000).click();
+            }
+            if(id('send_btn').exists()){
+                id('send_btn').findOne(2000).click();
+            }
+        } else {
+            log("找不到输入框，无法发送信息", currentActivity());
+        }
     });
+    // athread =   threads.start(() =>{
+    //     sleep(2000);
+    //     launch("com.tencent.mobileqq");
+    //     sleep(2000);
+    //     while(index < arrrp.length  ){
+    //         log('执行任务中')
+    //         dotask(arrrp[arrrp[index]]);
+    //         index+=1;
+    //         sleep(1000);
+    //     }
+    //     var startTime = new Date().getTime(); 
+    //     while (athread.isAlive()) {
+    //         log('主线程正在等待子线程完成...');
+    //         sleep(1000);  // 每隔2秒检查一次子线程状态
+    //         var currentTime = new Date().getTime();
+    //         if (currentTime - startTime > taskTimeout) {
+    //             log('超时，正在中断子线程...');
+    //             athread.interrupt(); // 中断子线程
+    //             break; // 退出循环
+    //         }
+    //     }
+    //     log('脚本执行结束');
+    //     // if (id('input').exists()) {
+    //     //     if (id("send_btn").exists()){
+    //     //         id("send_btn").findOne(2000)
+    //     //     }else {
+    //     //         log("找不到发送按钮");
+
+    //     //     }
+    //     // }
+    //     // gesture(1000, [device.width/2, device.height/2], [device.width/2, device.height/2 - 300], [0, 0])
+    //     // // className("androidx.recyclerview.widget.RecyclerView").scrollable(true).findOne().scrollForward()
+    //     // findTabIndex(3);
+    //     // testQQAdd();
+    //     // var sendBtn = id("send_btn").findOne(2000).click();
+    //     // log(sendBtn);
+    //     // id('sss').findOne(2000).exists() //crash  八错
+        
+    //       // app.startActivity({
+    // //     action: "android.intent.action.VIEW",
+    // //     data: "mqq://card/show_pslcard?src_type=internal&version=1&uin=" + item.qq,
+    // //     packageName: "com.tencent.mobileqq",
+    // // }); 
+    // });
 
 }
 startScript();
