@@ -152,36 +152,63 @@ function scrollDown() {
 }
 var imm = context.getSystemService(android.content.Context.INPUT_METHOD_SERVICE);
 imm.toggleSoftInput(0, android.view.inputmethod.InputMethodManager.HIDE_NOT_ALWAYS);
+function gestScorllerUp() {
+    gesture(1000, [device.width / 2, device.height], [device.width / 2,0], [0, 0])
+    sleep(1000);
+}
 
 function startScript(){
+    // UtilLog(1,2,3,[123123])
     athread = threads.start(() =>{
         launch("com.tencent.mobileqq");
         sleep(2000);
-        if (className("android.widget.FrameLayout").clickable(true).depth(10).exists()) {
-            className("android.widget.FrameLayout").clickable(true).depth(10).findOne(2000).click();
-        }
-        if (className("android.widget.FrameLayout").clickable(true).depth(6).exists()) {
-            className("android.widget.FrameLayout").clickable(true).depth(6).findOne(2000).click();
-        }
-        sleep(2000);
+        if (className('android.widget.Button').desc('搜索框').exists()) {
+            className('android.widget.Button').desc('搜索框').findOne(3000).click();
+        }else{
+            //找不到的话尝试double click
+           var  qqxiu = className("android.widget.Button").desc("超级QQ秀").drawingOrder(9).findOne(2000).bounds();
+           log(qqxiu.centerX(),qqxiu.centerY());
+           const  x = qqxiu.centerX() - 120;
+           const  y = qqxiu.centerY();
+           sleep(300);
+           click(x,y);
+           sleep(100)
+           click(x,y);
+           sleep(1000);
+           if (className('android.widget.Button').desc('搜索框').exists()) {
+            className('android.widget.Button').desc('搜索框').findOne(3000).click();
+           }
 
-        if (className("android.widget.EditText").exists()) {
-            // 判断 reason 的类型并处理
-            className("android.widget.EditText").findOne(2000).setText("12312321");
-            sleep(2000);
-            var  bounds =   className("android.widget.TextView").text('我的电脑').findOne(2000).bounds();
-            click(bounds.left,bounds.bottom + 120);
-            sleep(1000)
-            if (className("android.widget.Button").text("发送").exists()) {
-                // id("send_btn").findOne().click()
-                className("android.widget.Button").text("发送").findOne(2000).click();
-            }
-            if(id('send_btn').exists()){
-                id('send_btn').findOne(2000).click();
-            }
-        } else {
-            log("找不到输入框，无法发送信息", currentActivity());
         }
+        // if (className("android.widget.RelativeLayout").clickable(true).exists()) {
+        //     className("android.widget.RelativeLayout").depth(4).clickable(true).findOne(defaultConfig.findOneTimeOut).click()
+        // }
+
+        // if (className("android.widget.FrameLayout").clickable(true).depth(10).exists()) {
+        //     className("android.widget.FrameLayout").clickable(true).depth(10).findOne(2000).click();
+        // }
+        // if (className("android.widget.FrameLayout").clickable(true).depth(6).exists()) {
+        //     className("android.widget.FrameLayout").clickable(true).depth(6).findOne(2000).click();
+        // }
+        // sleep(2000);
+
+        // if (className("android.widget.EditText").exists()) {
+        //     // 判断 reason 的类型并处理
+        //     className("android.widget.EditText").findOne(2000).setText("12312321");
+        //     sleep(2000);
+        //     var  bounds =   className("android.widget.TextView").text('我的电脑').findOne(2000).bounds();
+        //     click(bounds.left,bounds.bottom + 120);
+        //     sleep(1000)
+        //     if (className("android.widget.Button").text("发送").exists()) {
+        //         // id("send_btn").findOne().click()
+        //         className("android.widget.Button").text("发送").findOne(2000).click();
+        //     }
+        //     if(id('send_btn').exists()){
+        //         id('send_btn').findOne(2000).click();
+        //     }
+        // } else {
+        //     log("找不到输入框，无法发送信息", currentActivity());
+        // }
     });
     // athread =   threads.start(() =>{
     //     sleep(2000);
@@ -227,7 +254,6 @@ function startScript(){
     // //     packageName: "com.tencent.mobileqq",
     // // }); 
     // });
-
 }
 startScript();
 
