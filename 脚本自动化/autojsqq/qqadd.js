@@ -72,7 +72,7 @@ var defaultConfig = {
     findOneTimeOut: 5000,
     expirationDate: new Date(2024, 9, 30, 0, 0, 0),
     displayLog: false,
-    operationItemtimeout: delayinteval * 3,
+    operationItemtimeout: 120000 ,
     validQQlist: [],
     userForceClose: false,
     naomalFinish: true,
@@ -260,11 +260,8 @@ events.observeKey();
 var logThread = null;
 ui.toggleSwitch.setOnCheckedChangeListener(function (view, isChecked) {
     if (isChecked) {
-        if (logThread == null || !logThread.isAlive()) {
-            logThread = threads.start(function () {
-                console.show();
-            });
-        }
+        // console.open();
+
     } else {
         if (logThread != null && logThread.isAlive()) {
             logThread.interrupt();
@@ -690,10 +687,11 @@ function startProcess() {
                 confirm("开始添加列表中的QQ?")
                     .then(sure => {
                         if (sure) {
+                            threads.shutDownAll();
                             autoScriptThread = threads.start(function () {
-                                //埋个暗门 
                                 startAddQQ();
                             });
+                        
                         }
                     });
 
@@ -930,7 +928,7 @@ function addFriendPageOperation(item, checkTimeout) {
             sleepSelf(delayinteval);
             if (checkTimeout()) return;
         } else {
-            updateQQItemStatus(item.index, -1, "该QQ处于待验证状态")
+            updateQQItemStatus(item.index, -1, "输入备注过程中未输入")
             return;
         }
         className("android.widget.Button").text("发送").findOne(defaultConfig.findOneTimeOut).click()
@@ -1163,9 +1161,6 @@ function checkExcptionTask(item){
 }
 
 function processAddFriend(item) {
-    if (defaultConfig.naomalFinish === false || defaultConfig.userForceClose === true){
-        return;
-    }
     const startTime = new Date().getTime();
     // 封装检查超时的函数
     function checkTimeout() {
@@ -1173,11 +1168,12 @@ function processAddFriend(item) {
             log('任务都结束了 用户点了强制执行');
             return true;
         }
+        log(`${item.qq}用时:`,(new Date().getTime() - startTime) / 1000)
         if (new Date().getTime() - startTime > defaultConfig.operationItemtimeout) {
-            log('已经超时本次任务两分钟了');
+            log('已经超时本次任务两分钟了', defaultConfig.operationItemtimeout);
             return true;
         }
-        log('任务未超时用时',(new Date().getTime() - startTime) / 1000)
+
         return false;
     }
     if (item === null || item === undefined) {
@@ -1198,13 +1194,11 @@ function processAddFriend(item) {
     if (className("android.widget.RelativeLayout").clickable(true).exists()) {
         className("android.widget.RelativeLayout").depth(4).clickable(true).findOne(defaultConfig.findOneTimeOut).click()
     }
-    if (checkTimeout()) return;
     sleepSelf(delayinteval);
     log("我查搜索框");
-    if (checkTimeout()) return;
     if (className('android.widget.Button').desc('搜索框').exists()) {
+        log("我查搜索框存在");
         className('android.widget.Button').desc('搜索框').findOne(defaultConfig.findOneTimeOut).click();
-        sleepSelf(delayinteval);
         if (checkTimeout()) return;
     }
     //首次可能没找到搜索框那么点击下中间双击会出现
@@ -1215,6 +1209,7 @@ function processAddFriend(item) {
         click(device.width/2.0,addiconbounds.centerY());
         log('先让搜索出来')
     }
+    sleepSelf(delayinteval)
     if (className('android.widget.Button').depth(9).desc('搜索框').exists()) {
         className('android.widget.Button').depth(9).desc('搜索框').findOne(defaultConfig.findOneTimeOut).click();
         sleepSelf(delayinteval);
@@ -1391,14 +1386,19 @@ function sendQQToComputer(lastqq, reason) {
             className("android.widget.TextView").text("设备").findOne(defaultConfig.findOneTimeOut).click();
             sleepSelf(delayinteval);
             log('找到我的电脑');
-            sleepSelf(delayinteval);
+            sleep(500)
             if (className("android.widget.FrameLayout").clickable(true).depth(10).exists()) {
                 className("android.widget.FrameLayout").clickable(true).depth(10).findOne(defaultConfig.findOneTimeOut).click();
             }
+            sleepSelf(delayinteval);
             if (className("android.widget.FrameLayout").clickable(true).depth(6).exists()) {
                 className("android.widget.FrameLayout").clickable(true).depth(6).findOne(defaultConfig.findOneTimeOut).click();
             }
-            sleepSelf(delayinteval);
+            sleep(500)
+            if (className("android.widget.FrameLayout").clickable(true).depth(4).drawingOrder(15).exists()) {
+                className("android.widget.FrameLayout").clickable(true).depth(4).drawingOrder(15).findOne(defaultConfig.findOneTimeOut).click();
+            }
+            sleep(500)
             if (className("android.widget.EditText").idStartsWith('in').exists()) {
                 // 判断 reason 的类型并处理
                 let reasonText = typeof reason === 'object' ? JSON.stringify(reason) : reason;
@@ -1431,6 +1431,7 @@ function lauchAppForIndex() {
     sleepSelf(delayinteval);
 }
 function startAddQQ() {
+        //埋个暗门 
     log("数据准备:", qqFirends);
     resetConfig();
     defaultConfig.startProcess = true;
@@ -1440,6 +1441,9 @@ function startAddQQ() {
     toast("开始加QQ啦~~~~🤣🤣");
     lauchAppForIndex();
     sleep(2000);
+    // qqFirends.forEach((item) => {
+    //     log(item);
+    // });
     while (defaultConfig.index < qqFirends.length && defaultConfig.startProcess === true && defaultConfig.userForceClose !== true) {
         var currentTask = qqFirends[defaultConfig.index];
         log("当前任务处理 current task ", currentTask)
@@ -1457,10 +1461,10 @@ function startAddQQ() {
         }
         defaultConfig.index += 1;
         log('当前任务完结')
-    }
+        }
    
-    dealFinishProcess();
-    log('程序终止')
+        dealFinishProcess();
+        log('程序终止')
 }
 
 
