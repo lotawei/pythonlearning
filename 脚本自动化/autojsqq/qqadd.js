@@ -914,7 +914,7 @@ function addFriendPageOperation(item, checkTimeout) {
     log(message)
     if (isExistVertify === true) {
         updateQQItemStatus(item.index, -1, "该QQ开启了答案验证无法加QQ")
-        loggerTrace(item.qq, { "code": "failed", "msg": "该qq开启了答案验证无法加此QQ" })
+        loggerTrace(item.qq, { "code": "failed", "msg": "该qq开启了答案验证无法加此QQ","data":JSON.stringify({"qq":item.qq})})
         return;
     }
     var bakexist = className("android.widget.EditText").exists();
@@ -1129,7 +1129,7 @@ function handleAddFriend(item, checkTimeout) {
         // 检查是否有异常账号弹窗
         if (className("android.widget.Button").text("确认").exists()) {
             updateQQItemStatus(item.index, -1, "该QQ账号异常")
-            loggerTrace(item.qq, { "code": "failed", "msg": "该qq异常无法添加", "data": item.toString() });
+            loggerTrace(item.qq, { "code": "failed", "msg": "该qq异常无法添加", "data":JSON.stringify({"item":item.qq}) });
             return;
         }
         // 检查是否有加好友按钮
@@ -1148,7 +1148,7 @@ function handleAddFriend(item, checkTimeout) {
         } 
         else {
             //该QQ 没有添加好友按钮可能存在异常
-            loggerTrace(item.qq, { "code": "failed", "msg": "请重新开始流程", "data":item});
+            loggerTrace(item.qq, { "code": "failed", "msg": "请重新开始流程", "data":JSON.stringify({"item":item.qq})});
             updateQQItemStatus(item.index, -1, "加人过程中未找到加好友")
         }
     }
@@ -1207,15 +1207,20 @@ function processAddFriend(item) {
         sleepSelf(delayinteval);
         if (checkTimeout()) return;
     }
-    
     //首次可能没找到搜索框那么点击下中间双击会出现
     else {
         const addiconbounds  = className("android.widget.ImageView").desc('快捷入口').clickable(true).findOne(defaultConfig.findOneTimeOut).bounds()
         click(device.width/2.0,addiconbounds.centerY());
-        sleepSelf(100);
+        sleep(50);
         click(device.width/2.0,addiconbounds.centerY());
         log('先让搜索出来')
     }
+    if (className('android.widget.Button').depth(9).desc('搜索框').exists()) {
+        className('android.widget.Button').depth(9).desc('搜索框').findOne(defaultConfig.findOneTimeOut).click();
+        sleepSelf(delayinteval);
+        if (checkTimeout()) return;
+    }
+    if (checkTimeout()) return;
     sleepSelf(delayinteval);
     if (className("android.view.ViewGroup").depth(9).desc('搜索').drawingOrder(10).clickable(true).exists()){
         className("android.view.ViewGroup").depth(9).desc('搜索').drawingOrder(10).clickable(true).findOne(defaultConfig.findOneTimeOut).click();
@@ -1242,7 +1247,7 @@ function processAddFriend(item) {
     log('================================cool================================', userInfo)
     if (checkTimeout()) return;
     if (userInfo === null) {
-        loggerTrace(item.qq, { 'code': "failed", 'msg': '该QQ不存在' })
+        loggerTrace(item.qq, { 'code': "failed", 'msg': '该QQ不存在' ,"data":JSON.stringify({"item":item.qq})})
         return;
     } else {
         click(userInfo.left + 10, userInfo.top + 10)
@@ -1435,23 +1440,27 @@ function startAddQQ() {
     toast("开始加QQ啦~~~~🤣🤣");
     lauchAppForIndex();
     sleep(2000);
-    try {
-        while (defaultConfig.index < qqFirends.length && defaultConfig.startProcess === true && defaultConfig.userForceClose !== true) {
-            var currentTask = qqFirends[defaultConfig.index];
-            log("当前任务处理 current task ", currentTask)
-            storage.put("closebycurrentQQ", currentTask.qq)
-            defaultConfig.lastOperationQQ = currentTask.qq;
+    while (defaultConfig.index < qqFirends.length && defaultConfig.startProcess === true && defaultConfig.userForceClose !== true) {
+        var currentTask = qqFirends[defaultConfig.index];
+        log("当前任务处理 current task ", currentTask)
+        storage.put("closebycurrentQQ", currentTask.qq)
+        defaultConfig.lastOperationQQ = currentTask.qq;
+        try {
             processAddFriend(currentTask)
-            defaultConfig.index += 1;
-            log('任务完结')
+        } catch (error) {
+            log('startQQ error异常出来:', error)
+            sleepSelf(delayinteval);
+            const  item = (defaultConfig.index <= qqFirends.length - 1) ? qqFirends[defaultConfig.index]:null;
+            if (item!== null) {
+                updateQQItemStatus(item.index,-1,`遭遇异常: ${error.message}\n堆栈信息:\n${error.stack}`)
+            }
         }
-    } catch (error) {
-        log('startQQ error异常出来:', error)
-        sleepSelf(delayinteval);
-        const  item = (defaultConfig.index <= qqFirends.length - 1) ? qqFirends[defaultConfig.index]:null;
-        closeApp(item === null ? "无任务进行抛出":item,error, true);
+        defaultConfig.index += 1;
+        log('当前任务完结')
     }
+   
     dealFinishProcess();
+    log('程序终止')
 }
 
 
