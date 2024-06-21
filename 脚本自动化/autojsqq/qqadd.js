@@ -72,7 +72,7 @@ var defaultConfig = {
     findOneTimeOut: 5000,
     expirationDate: new Date(2024, 9, 30, 0, 0, 0),
     displayLog: false,
-    operationItemtimeout: 180000,
+    operationItemtimeout: 120000,
     validQQlist: [],
     userForceClose: false,
     naomalFinish: true,
@@ -856,9 +856,8 @@ function closeApp(item,reason, byuserForce) {
     }
     if(typeof item === 'object') {
         if (item.status === -2){
-            lastQQTrigger = item.qq;
             ui.run(() => {
-                ui.triggerQQ.setText(lastQQTrigger);
+                ui.triggerQQ.setText("上次触发风控的QQ:" + item.qq);
             })
         }
     }
@@ -893,6 +892,7 @@ function retryAddFriendByQQZone(item, checkTimeout) {
             "message": "二次确认加好友",
             "data": JSON.stringify({ "qq": item.qq })
         });
+        if (checkTimeout()) return false;
         return true; // 成功添加好友
     } else {
         return false; // 未找到备注输入框，添加好友失败
@@ -942,11 +942,11 @@ function addFriendPageOperation(item, checkTimeout) {
             className("android.widget.Button").desc("取消").text("取消").findOne(defaultConfig.findOneTimeOut).click();
             toastLog("该账号被多人举报需要先处理😭~~");
             updateQQItemStatus(item.index, -1, "你自己的QQ号被举报需要处理")
-            defaultConfig.userForceClose = true;
             defaultConfig.naomalFinish = false;
             closeApp(item,"你的QQ号被举报了在添加", false);
             return;
         }
+
         loggerTrace(item.qq, { "code": "success", "message": "操作了加好友首次", "data": JSON.stringify({ "qq": item.qq }) })
         log("账号无异常没弹出警告")
         if (className("android.widget.Button").text("加好友").exists()) {
@@ -954,7 +954,9 @@ function addFriendPageOperation(item, checkTimeout) {
             className("android.widget.Button").text("加好友").findOne(defaultConfig.findOneTimeOut).click();
             sleepSelf(delayinteval + 3000);
             if (checkTimeout()) return;
+            checkExcptionTask(item);
             log("点击了加好友按钮 检查备注")
+            if (checkTimeout()) return;
             if (id("bz4").text('输入备注').exists()) {
                 back()
                 sleepSelf(delayinteval);
@@ -985,6 +987,9 @@ function addFriendPageOperation(item, checkTimeout) {
                     }
                     sleepSelf(delayinteval);
                     if (checkTimeout()) return;
+                    checkExcptionTask(item)
+                    sleepSelf(delayinteval);
+                    if (checkTimeout()) return;
                     if (className("android.widget.EditText").text('输入备注').exists() === true) {
                         loggerTrace('existQQ', { "qq": item.qq, "time": getFormattedTimestamp() })
                         updateQQItemStatus(item.index, -2, "二次确认QQ空间资料加人未备注上")
@@ -1001,8 +1006,6 @@ function addFriendPageOperation(item, checkTimeout) {
                 } else {
                     updateQQItemStatus(item.index, -1, "尝试从QQ空间加人遭遇异常")
                     loggerTrace(item.qq, { "code": "false", "message": "异常情况", "data": JSON.stringify({ "qq": item.qq }) })
-                    sleepSelf(delayinteval);
-                    if (checkTimeout()) return;
                     return;
                 }
             } else {
@@ -1010,6 +1013,11 @@ function addFriendPageOperation(item, checkTimeout) {
                 updateQQItemStatus(item.index, 1, "直接加人成功")
                 loggerTrace(item.qq, { "code": "success", "message": "直接加人成功", "data": JSON.stringify({ "qq": item.qq }) })
             }
+        }
+        else{
+            updateQQItemStatus(item.index, -1, "加好友按钮不存在")
+            loggerTrace(item.qq, { "code": "failed", "msg": "加好友按钮不存在", "data": JSON.stringify({ "qq": item.qq }) })
+            return;
         }
     }
     else {
@@ -1072,6 +1080,7 @@ function handleAddFriend(item, checkTimeout) {
     if (defaultConfig.flagQQZonePorcessAdd) {
         log('===============================已经有过QQ触发备注丢失的情况================================');
         log(`${item.qq}本次任务触发下}`);
+        if (checkTimeout()) return;
         if (className("android.widget.LinearLayout").desc('他的QQ空间').exists()) {
             className("android.widget.LinearLayout").desc('他的QQ空间').findOne(defaultConfig.findOneTimeOut).click();
         } else if (className("android.widget.LinearLayout").desc('她的QQ空间').exists()) {
@@ -1081,7 +1090,7 @@ function handleAddFriend(item, checkTimeout) {
         if (checkTimeout()) return;
 
         gestScorller();
-
+        if (checkTimeout()) return;
         if (className("android.widget.TextView").text("加好友").exists()) {
             className("android.widget.TextView").text("加好友").findOne(defaultConfig.findOneTimeOut).click();
         }
@@ -1124,21 +1133,39 @@ function handleAddFriend(item, checkTimeout) {
             return;
         }
         // 检查是否有加好友按钮
-        if (className("android.widget.Button").text("加好友").exists() === true) {
+        if (className("android.widget.Button").text("加好友").exists()) {
             className("android.widget.Button").text("加好友").findOne(defaultConfig.findOneTimeOut).click();
             sleepSelf(delayinteval);
             if (checkTimeout()) return;
+            if( className("android.widget.Button").desc('确定').exists()){
+                className("android.widget.Button").desc('确定').findOne(defaultConfig.findOneTimeOut).click();
+                updateQQItemStatus(item.index, -1, "该账号异常出现弹窗无法进行")
+                return;
+            }
+            if (checkTimeout()) return;
             gestScorller();
             addFriendPageOperation(item, checkTimeout);
-        } else {
+        } 
+        else {
             //该QQ 没有添加好友按钮可能存在异常
-            loggerTrace(item.qq, { "code": "failed", "msg": "请重新开始流程", "data": item.toString() });
+            loggerTrace(item.qq, { "code": "failed", "msg": "请重新开始流程", "data":item});
             updateQQItemStatus(item.index, -1, "加人过程中未找到加好友")
         }
     }
 }
+
+function checkExcptionTask(item){
+    if( className("android.widget.Button").desc('确定').exists()){
+        className("android.widget.Button").desc('确定').findOne(defaultConfig.findOneTimeOut).click();
+        updateQQItemStatus(item.index, -1, "该账号异常出现弹窗无法进行")
+        return;
+    }
+}
+
 function processAddFriend(item) {
-    
+    if (defaultConfig.naomalFinish === false || defaultConfig.userForceClose === true){
+        return;
+    }
     const startTime = new Date().getTime();
     // 封装检查超时的函数
     function checkTimeout() {
@@ -1147,7 +1174,7 @@ function processAddFriend(item) {
             return true;
         }
         if (new Date().getTime() - startTime > defaultConfig.operationItemtimeout) {
-            log('已经超时本次任务两分钟了行不行不行就别搞了');
+            log('已经超时本次任务两分钟了');
             return true;
         }
         log('任务未超时用时',(new Date().getTime() - startTime) / 1000)
@@ -1157,8 +1184,7 @@ function processAddFriend(item) {
         toast('列表中存在不规范无法解析')
         return;
     }
-    log(`第${defaultConfig.index + 1}位选手:${item.qq} 正在添加`)
-    sleepSelf(delayinteval);
+    log(`第${item.index + 1}位选手:${item.qq} 正在添加`)
     if (isEmptystr(item.qq)) {
         toast('列表中存在不规范的数据');
         return;
@@ -1167,35 +1193,34 @@ function processAddFriend(item) {
     if (!returnToHomeScreen()) {
         return;
     }
-    // findTabIndex(0);
+    if (checkTimeout()) return;
+    findTabIndex(0);
     if (className("android.widget.RelativeLayout").clickable(true).exists()) {
         className("android.widget.RelativeLayout").depth(4).clickable(true).findOne(defaultConfig.findOneTimeOut).click()
     }
-    sleepSelf(delayinteval);
     if (checkTimeout()) return;
-    log("努力查找");
     sleepSelf(delayinteval);
+    log("我查搜索框");
     if (checkTimeout()) return;
     if (className('android.widget.Button').desc('搜索框').exists()) {
         className('android.widget.Button').desc('搜索框').findOne(defaultConfig.findOneTimeOut).click();
         sleepSelf(delayinteval);
+        if (checkTimeout()) return;
     }
+    
     //首次可能没找到搜索框那么点击下中间双击会出现
-    else if (className("android.widget.ImageView").desc('快捷入口').clickable(true).exists()){
-        const addiconbounds  =  className("android.widget.ImageView").desc('快捷入口').clickable(true).bounds()
+    else {
+        const addiconbounds  = className("android.widget.ImageView").desc('快捷入口').clickable(true).findOne(defaultConfig.findOneTimeOut).bounds()
         click(device.width/2.0,addiconbounds.centerY());
         sleepSelf(100);
         click(device.width/2.0,addiconbounds.centerY());
+        log('先让搜索出来')
     }
-    if (className('android.widget.Button').desc('搜索框').exists()) {
-        className('android.widget.Button').desc('搜索框').findOne(defaultConfig.findOneTimeOut).click();
+    sleepSelf(delayinteval);
+    if (className("android.view.ViewGroup").depth(9).desc('搜索').drawingOrder(10).clickable(true).exists()){
+        className("android.view.ViewGroup").depth(9).desc('搜索').drawingOrder(10).clickable(true).findOne(defaultConfig.findOneTimeOut).click();
         sleepSelf(delayinteval);
-    }
-    else{
-        toastLog("未找到搜索框");
-        loggerTrace(item.qq, { 'code': "failed", 'msg': '未找到搜索框出现异常情况' })
-        updateQQItemStatus(item.index,-1,'首页没找到搜索框诡异')
-        return;
+        log('走QQ特殊的搜索入口')
     }
     if (checkTimeout()) return;
     //搜索框填入QQ号
@@ -1225,6 +1250,8 @@ function processAddFriend(item) {
         if (checkTimeout()) return;
         handleAddFriend(item, checkTimeout);
     }
+    if(checkTimeout()) return;
+    checkExcptionTask(item);
     // app.startActivity({
     //     action: "android.intent.action.VIEW",
     //     data: "mqq://card/show_pslcard?src_type=internal&version=1&uin=" + item.qq,
@@ -1296,6 +1323,7 @@ function analysisCurrentTask() {
     });
     let jsonString = JSON.stringify(categorizedResults, null, 2);
     sendQQToComputer(jsonString, getFormattedTimestamp() + "操作记录");
+    
 }
 
 function dealFinishProcess() {
@@ -1308,12 +1336,7 @@ function dealFinishProcess() {
             $ui.lastOperationQQ.setText("最后操作的QQ号" + defaultConfig.lastOperationQQ);
         });
     }
-    if(!defaultConfig.userForceClose){
-        analysisCurrentTask();
-    }
-    if(!defaultConfig.naomalFinish){
-        analysisCurrentTask();
-    }
+    analysisCurrentTask();
     const taskFinish = { "byAccount": defaultConfig.byredirectQQCount, "byQQZone": defaultConfig.byQQZoneCount, "failCount": qqFirends.length - defaultConfig.byQQZoneCount - defaultConfig.byredirectQQCount, "total": qqFirends.length, "time": getFormattedTimestamp() };
     loggerTrace("recordfinished", taskFinish);
     taskrecord = singleTaskRecord();
@@ -1336,15 +1359,14 @@ function findTabIndex(index) {
         return;
     }
     log(device.width, device.height);
-
     if (className("android.widget.TabWidget").exists()) {
         const tabs = className("android.widget.TabWidget").findOne(defaultConfig.findOneTimeOut).bounds();
-
         // 正确的x坐标计算
         const x = device.width / 5 * index + device.width / 10;
         const y = device.height - tabs.height() / 2.0;
 
         log(x, y, tabs);
+        sleepSelf(1000);
         click(x, y);
     } else {
         log("TabWidget not found");
@@ -1354,7 +1376,8 @@ function sendQQToComputer(lastqq, reason) {
     const sendinfo = typeof lastqq === "string" ? lastqq : JSON.stringify(lastqq);
     log(`发结果到文件 ${sendinfo} ${reason}`);
     if (returnToHomeScreen()) {
-        // findTabIndex(3);
+        findTabIndex(3);
+        sleepSelf(delayinteval);
         if (id("kbi").className("android.widget.TextView").text("联系人").exists()) {
             id("kbi").className("android.widget.TextView").text("联系人").findOne(defaultConfig.findOneTimeOut).parent().parent().click()
         }
@@ -1391,15 +1414,14 @@ function sendQQToComputer(lastqq, reason) {
         } else {
             log("找不到设备Tab");
         }
-    } else {
+    } 
+    else {
         log("未能返回主页，无法发送QQ号到电脑");
     }
 }
 
 function lauchAppForIndex() {
-    sleep(1000);
-    home();
-    sleepSelf(delayinteval - 2000);
+    sleepSelf(2000);
     launch("com.tencent.mobileqq");
     sleepSelf(delayinteval);
 }

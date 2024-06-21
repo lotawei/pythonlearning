@@ -93,7 +93,6 @@ function findTabIndex(index){
     
     if (className("android.widget.TabWidget").exists()) {
         const tabs = className("android.widget.TabWidget").findOne(2000).bounds();
-        
         // 正确的x坐标计算
         const x = device.width / 5 * index + device.width / 10;
         const y = device.height - tabs.height() / 2.0;
@@ -157,29 +156,75 @@ function gestScorllerUp() {
     sleep(1000);
 }
 
+function processAddFriend(item) {
+    
+    const startTime = new Date().getTime();
+    // 封装检查超时的函数
+    function checkTimeout() {
+        if (new Date().getTime() - startTime > 1000) {
+            log('已经超时本次任务两分钟了');
+            return true;
+        }
+        log('任务未超时用时',(new Date().getTime() - startTime) / 1000)
+        return false;
+    }
+
+    className('android.widget.Button').desc('addFriend').findOne(3000);
+    if(checkTimeout()) return;
+    log('阻塞中')
+}
 function startScript(){
     // UtilLog(1,2,3,[123123])
     athread = threads.start(() =>{
         launch("com.tencent.mobileqq");
         sleep(2000);
-        if (className('android.widget.Button').desc('搜索框').exists()) {
-            className('android.widget.Button').desc('搜索框').findOne(3000).click();
-        }else{
-            //找不到的话尝试double click
-           var  qqxiu = className("android.widget.Button").desc("超级QQ秀").drawingOrder(9).findOne(2000).bounds();
-           log(qqxiu.centerX(),qqxiu.centerY());
-           const  x = qqxiu.centerX() - 120;
-           const  y = qqxiu.centerY();
-           sleep(300);
-           click(x,y);
-           sleep(100)
-           click(x,y);
-           sleep(1000);
-           if (className('android.widget.Button').desc('搜索框').exists()) {
-            className('android.widget.Button').desc('搜索框').findOne(3000).click();
-           }
-
+        //com.tencent.mobileqq.profilecard.activity.FriendProfileCardActivity
+        log(currentActivity())
+        for(var i = 0; i < 5; i++){
+            processAddFriend(i);
+            sleep(2000);
         }
+
+        // if( className("android.widget.Button").desc('确定').exists()){
+        //     className("android.widget.Button").desc('确定').findOne(2000).click();
+        //     // return;
+        // }
+        // log('不走')
+        // sleep(2000);
+        // if (className('android.widget.Button').desc('搜索框').exists()) {
+        //     className('android.widget.Button').desc('搜索框').findOne(2000).click();
+        //     sleep(2000);
+        // }
+        // //首次可能没找到搜索框那么点击下中间双击会出现
+        // else {
+        //     const addiconbounds  = className("android.widget.ImageView").desc('快捷入口').clickable(true).findOne(2000).bounds()
+        //     click(device.width/2.0,addiconbounds.centerY());
+        //     sleep(100);
+        //     click(device.width/2.0,addiconbounds.centerY());
+        //     log('先让搜索出来')
+        // }
+        // sleep(2000);
+        // if (className("android.view.ViewGroup").depth(9).desc('搜索').drawingOrder(10).clickable(true).exists()){
+        //     className("android.view.ViewGroup").depth(9).desc('搜索').drawingOrder(10).clickable(true).findOne(2000).click();
+        //     log('走特殊的搜索入口进去')
+        // }
+        // if (className('android.widget.Button').desc('搜索框').exists()) {
+        //     className('android.widget.Button').desc('搜索框').findOne(3000).click();
+        // }else{
+        //     //找不到的话尝试double click
+        //    var  qqxiu = className("android.widget.Button").desc("超级QQ秀").drawingOrder(9).findOne(2000).bounds();
+        //    log(qqxiu.centerX(),qqxiu.centerY());
+        //    const  x = qqxiu.centerX() - 120;
+        //    const  y = qqxiu.centerY();
+        //    sleep(300);
+        //    click(x,y);
+        //    sleep(100)
+        //    click(x,y);
+        //    sleep(1000);
+        //    if (className('android.widget.Button').desc('搜索框').exists()) {
+        //     className('android.widget.Button').desc('搜索框').findOne(3000).click();
+        //    }
+        // }
         // if (className("android.widget.RelativeLayout").clickable(true).exists()) {
         //     className("android.widget.RelativeLayout").depth(4).clickable(true).findOne(defaultConfig.findOneTimeOut).click()
         // }
