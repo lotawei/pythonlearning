@@ -72,7 +72,7 @@ var defaultConfig = {
     findOneTimeOut: 5000,
     expirationDate: new Date(2024, 9, 30, 0, 0, 0),
     displayLog: false,
-    operationItemtimeout: 120000,
+    operationItemtimeout: delayinteval * 3,
     validQQlist: [],
     userForceClose: false,
     naomalFinish: true,
@@ -1148,8 +1148,8 @@ function handleAddFriend(item, checkTimeout) {
         } 
         else {
             //该QQ 没有添加好友按钮可能存在异常
-            loggerTrace(item.qq, { "code": "failed", "msg": "请重新开始流程", "data":JSON.stringify({"item":item.qq})});
-            updateQQItemStatus(item.index, -1, "加人过程中未找到加好友")
+            loggerTrace(item.qq, { "code": "failed", "msg": "未找到好友", "data":JSON.stringify({"item":item.qq})});
+            updateQQItemStatus(item.index, -1, "加人过程中未找到加好友应该已经是你的好友或者是你自己")
         }
     }
 }
