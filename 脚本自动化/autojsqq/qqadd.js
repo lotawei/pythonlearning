@@ -1101,7 +1101,8 @@ function handleAddFriend(item, checkTimeout) {
             if (className("android.widget.TextView").text("加好友").exists()) {
                 className("android.widget.TextView").text("加好友").findOne(defaultConfig.findOneTimeOut).click();
             } else {
-                log("尝试QQ空间加好友未没找到加好友按钮待优化");
+                updateQQItemStatus(item.index, -1, `${item.qq}QQ空间没找到加好友`)
+                return;
             }
             sleepSelf(delayinteval);
             if (checkTimeout()) return;
@@ -1444,7 +1445,7 @@ function startAddQQ() {
     // qqFirends.forEach((item) => {
     //     log(item);
     // });
-    while (defaultConfig.index < qqFirends.length && defaultConfig.startProcess === true && defaultConfig.userForceClose !== true) {
+    while (defaultConfig.index < qqFirends.length && defaultConfig.startProcess === true && defaultConfig.userForceClose !== true &&  defaultConfig.naomalFinish === true) {
         var currentTask = qqFirends[defaultConfig.index];
         log("当前任务处理 current task ", currentTask)
         storage.put("closebycurrentQQ", currentTask.qq)
@@ -1461,10 +1462,9 @@ function startAddQQ() {
         }
         defaultConfig.index += 1;
         log('当前任务完结')
-        }
+    }
    
         dealFinishProcess();
-        log('程序终止')
 }
 
 
