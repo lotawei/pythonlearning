@@ -1248,6 +1248,7 @@ function processAddFriend(item) {
     if (checkTimeout()) return;
     if (userInfo === null) {
         loggerTrace(item.qq, { 'code': "failed", 'msg': '该QQ不存在' ,"data":JSON.stringify({"item":item.qq})})
+        updateQQItemStatus(item.index,-1,'qq未搜索到不存在')
         return;
     } else {
         click(userInfo.left + 10, userInfo.top + 10)
