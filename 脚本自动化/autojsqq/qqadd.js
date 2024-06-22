@@ -74,8 +74,8 @@ var defaultConfig = {
     displayLog: false,
     operationItemtimeout: 120000 ,
     validQQlist: [],
-    userForceClose: false,
-    naomalFinish: true,
+    userForceClose: false, //用户强制关闭 不发电脑
+    normalFinish: true, //触发风控或者不正常需要终止的关闭
 }
 defaultConfig.bakInfo = formatBakDefault();
 var autoScriptThread = null;
@@ -656,7 +656,7 @@ function startProcess() {
                     if (autoScriptThread != null && autoScriptThread.isAlive) {
                         const  indexItem = defaultConfig.index <= qqFirends.length -1 ? qqFirends[defaultConfig.index]:null;
                         defaultConfig.userForceClose = true;
-                        defaultConfig.naomalFinish = false;
+                        defaultConfig.normalFinish = false;
                         closeApp(indexItem === null ? '未记录到任务':indexItem,'用户取消了本次任务', true);
                     }
                 }
@@ -940,7 +940,7 @@ function addFriendPageOperation(item, checkTimeout) {
             className("android.widget.Button").desc("取消").text("取消").findOne(defaultConfig.findOneTimeOut).click();
             toastLog("该账号被多人举报需要先处理😭~~");
             updateQQItemStatus(item.index, -1, "你自己的QQ号被举报需要处理")
-            defaultConfig.naomalFinish = false;
+            defaultConfig.normalFinish = false;
             closeApp(item,"你的QQ号被举报了在添加", false);
             return;
         }
@@ -991,7 +991,7 @@ function addFriendPageOperation(item, checkTimeout) {
                     if (className("android.widget.EditText").text('输入备注').exists() === true) {
                         loggerTrace('existQQ', { "qq": item.qq, "time": getFormattedTimestamp() })
                         updateQQItemStatus(item.index, -2, "二次确认QQ空间资料加人未备注上")
-                        defaultConfig.naomalFinish = false;
+                        defaultConfig.normalFinish = false;
                         closeApp(item,'QQ空间资料加人触发', false);
                         return;
                     } else {
@@ -1112,7 +1112,7 @@ function handleAddFriend(item, checkTimeout) {
                 loggerTrace('existQQ', { "qq": item.qq, "time": getFormattedTimestamp() });
                 sleepSelf(delayinteval);
                 updateQQItemStatus(item.index, -2, `${item.qq}选手在尝试从QQ空间资料加人就备注丢失的情况`)
-                defaultConfig.naomalFinish = false;
+                defaultConfig.normalFinish = false;
                 closeApp(item,"QQ空间加人遭遇风控", false);
                 return;
             } else {
@@ -1181,7 +1181,7 @@ function processAddFriend(item) {
         toast('列表中存在不规范无法解析')
         return;
     }
-    if(defaultConfig.naomalFinish === false || defaultConfig.userForceClose){
+    if(defaultConfig.normalFinish === false || defaultConfig.userForceClose){
         log('任务处于结束状态中');
         return;
     }
@@ -1274,7 +1274,7 @@ function resetConfig() {
     defaultConfig.failCount = 0;
     defaultConfig.flagQQZonePorcessAdd = false;
     defaultConfig.userForceClose = false;
-    defaultConfig.naomalFinish = true;
+    defaultConfig.normalFinish = true;
 }
 
 
@@ -1451,7 +1451,7 @@ function startAddQQ() {
     // qqFirends.forEach((item) => {
     //     log(item);
     // });
-    while (defaultConfig.index < qqFirends.length && defaultConfig.startProcess === true && defaultConfig.userForceClose !== true &&  defaultConfig.naomalFinish === true) {
+    while (defaultConfig.index < qqFirends.length && defaultConfig.startProcess === true && defaultConfig.userForceClose !== true &&  defaultConfig.normalFinish === true) {
         var currentTask = qqFirends[defaultConfig.index];
         log("当前任务处理 current task ", currentTask)
         storage.put("closebycurrentQQ", currentTask.qq)
