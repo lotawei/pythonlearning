@@ -72,7 +72,7 @@ var defaultConfig = {
     findOneTimeOut: 5000,
     expirationDate: new Date(2024, 9, 30, 0, 0, 0),
     displayLog: false,
-    operationItemtimeout: 120000 ,
+    operationItemtimeout: 240000 ,
     validQQlist: [],
     userForceClose: false, //用户强制关闭 不发电脑
     normalFinish: true, //触发风控或者不正常需要终止的关闭
@@ -654,7 +654,7 @@ function startProcess() {
         confirm("停止当前任务")
             .then(sure => {
                 if (sure) {
-                    if (autoScriptThread != null && autoScriptThread.isAlive) {
+                    if (autoScriptThread != null && autoScriptThread.isAlive()) {
                         const  indexItem = defaultConfig.index <= qqFirends.length -1 ? qqFirends[defaultConfig.index]:null;
                         defaultConfig.userForceClose = true;
                         defaultConfig.normalFinish = false;
@@ -861,6 +861,7 @@ function closeApp(item,reason, byuserForce) {
         }
     }
     ui.run(() => {
+
         startWindowBtn.startbtn.setText('开始')
     })
 }
@@ -1117,7 +1118,6 @@ function handleAddFriend(item, checkTimeout) {
                 closeApp(item,"QQ空间加人遭遇风控", false);
                 return;
             } else {
-                defaultConfig.flagQQZonePorcessAdd = true;
                 defaultConfig.byQQZoneCount += 1;
                 updateQQItemStatus(item.index, 1, "QQ空间加人成功")
             }
@@ -1166,6 +1166,7 @@ function processAddFriend(item) {
     const startTime = new Date().getTime();
     // 封装检查超时的函数
     function checkTimeout() {
+        log("任务超时检测",threads.currentThread())
         if(defaultConfig.startProcess === false ||  defaultConfig.userForceClose === true){
             log('任务都结束了 用户点了强制执行');
             return true;
@@ -1333,14 +1334,14 @@ function analysisCurrentTask() {
     
 }
 
-function dealFinishProcess() {
-    log("进入处理完成流程,", defaultConfig.index, qqFirends.length);
-    if (defaultConfig.index > 0 && (defaultConfig.index === qqFirends.length)) {
-        var lastqq = qqFirends[defaultConfig.index - 1].qq;
+function dealFinishProcess(item) {
+    log("进入处理完成流程");
+    if(item !== null){
+        var lastqq = item.qq;
         storage.put("closebycurrentQQ", lastqq)
         defaultConfig.lastOperationQQ = lastqq;
         ui.run(() => {
-            $ui.lastOperationQQ.setText("最后操作的QQ号" + defaultConfig.lastOperationQQ);
+                $ui.lastOperationQQ.setText("最后操作的QQ号" + defaultConfig.lastOperationQQ);
         });
     }
     analysisCurrentTask();
@@ -1382,7 +1383,6 @@ function findTabIndex(index) {
 function sendQQToComputer(lastqq, reason) {
     const sendinfo = typeof lastqq === "string" ? lastqq : JSON.stringify(lastqq);
     log(`发结果到文件 ${sendinfo} ${reason},${threads.currentThread()}`);
-
     if (returnToHomeScreen()) {
         findTabIndex(3);
         sleepSelf(delayinteval);
@@ -1451,7 +1451,7 @@ function startAddQQ() {
     sleep(2000);
     while (defaultConfig.index < qqFirends.length && defaultConfig.startProcess === true && defaultConfig.userForceClose !== true &&  defaultConfig.normalFinish === true) {
         var currentTask = qqFirends[defaultConfig.index];
-        log("当前任务处理 current task ", currentTask)
+        log("当前任务处理 current task ", currentTask,threads.currentThread())
         storage.put("closebycurrentQQ", currentTask.qq)
         defaultConfig.lastOperationQQ = currentTask.qq;
         try {
@@ -1467,8 +1467,8 @@ function startAddQQ() {
         defaultConfig.index += 1;
         log('当前任务完结')
     }
-   
-        dealFinishProcess();
+    var  lastqq = defaultConfig.index <= qqFirends.length - 1 ? qqFirends[defaultConfig.index] : null;
+    dealFinishProcess(lastqq);
 }
 
 
