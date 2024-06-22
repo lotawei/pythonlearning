@@ -1181,6 +1181,10 @@ function processAddFriend(item) {
         toast('列表中存在不规范无法解析')
         return;
     }
+    if(defaultConfig.naomalFinish === false || defaultConfig.userForceClose){
+        log('任务处于结束状态中');
+        return;
+    }
     log(`第${item.index + 1}位选手:${item.qq} 正在添加`)
     if (isEmptystr(item.qq)) {
         toast('列表中存在不规范的数据');
@@ -1375,7 +1379,8 @@ function findTabIndex(index) {
 }
 function sendQQToComputer(lastqq, reason) {
     const sendinfo = typeof lastqq === "string" ? lastqq : JSON.stringify(lastqq);
-    log(`发结果到文件 ${sendinfo} ${reason}`);
+    log(`发结果到文件 ${sendinfo} ${reason},${threads.currentThread()}`);
+
     if (returnToHomeScreen()) {
         findTabIndex(3);
         sleepSelf(delayinteval);
