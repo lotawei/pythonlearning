@@ -260,8 +260,9 @@ events.observeKey();
 var logThread = null;
 ui.toggleSwitch.setOnCheckedChangeListener(function (view, isChecked) {
     if (isChecked) {
-        // console.open();
-
+        logThread = threads.start(function () {
+            console.show();
+        });
     } else {
         if (logThread != null && logThread.isAlive()) {
             logThread.interrupt();
@@ -1448,9 +1449,6 @@ function startAddQQ() {
     toast("开始加QQ啦~~~~🤣🤣");
     lauchAppForIndex();
     sleep(2000);
-    // qqFirends.forEach((item) => {
-    //     log(item);
-    // });
     while (defaultConfig.index < qqFirends.length && defaultConfig.startProcess === true && defaultConfig.userForceClose !== true &&  defaultConfig.normalFinish === true) {
         var currentTask = qqFirends[defaultConfig.index];
         log("当前任务处理 current task ", currentTask)
