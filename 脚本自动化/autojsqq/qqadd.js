@@ -72,7 +72,7 @@ var defaultConfig = {
     findOneTimeOut: 5000,
     expirationDate: new Date(2024, 9, 30, 0, 0, 0),
     displayLog: false,
-    operationItemtimeout: 180000 ,
+    operationItemtimeout: 120000 ,
     validQQlist: [],
     userForceClose: false,
     naomalFinish: true,
@@ -648,7 +648,7 @@ function startProcess() {
             storage.put("ksn", defaultConfig.validCode);
         }
     }
-    if (defaultConfig.startProcess === true ) {
+    if (defaultConfig.startProcess === true) {
         ui.run(() => toastLog("目前有正在执行的自动化脚本任务，请耐心等待"));
         confirm("停止当前任务")
             .then(sure => {
@@ -656,8 +656,8 @@ function startProcess() {
                     if (autoScriptThread != null && autoScriptThread.isAlive) {
                         const  indexItem = defaultConfig.index <= qqFirends.length -1 ? qqFirends[defaultConfig.index]:null;
                         defaultConfig.userForceClose = true;
-                        defaultConfig.naomalFinish = true;
-                        closeApp(indexItem === null ? '未记录到任务':indexItem.qq,'用户取消了本次任务', true);
+                        defaultConfig.naomalFinish = false;
+                        closeApp(indexItem === null ? '未记录到任务':indexItem,'用户取消了本次任务', true);
                     }
                 }
             });
@@ -847,8 +847,8 @@ function executeDelayedClosure(closure, delayInSeconds, numberOfExecutions) {
     }, delayInSeconds * 1000);
 }
 
-function closeApp(item,reason) {
-    if (defaultConfig.naomalFinish === false) {
+function closeApp(item,reason, byuserForce) {
+    if (!byuserForce) {
         // 发送QQ信息到电脑
         sendQQToComputer(item, reason);
     }
@@ -992,7 +992,7 @@ function addFriendPageOperation(item, checkTimeout) {
                         loggerTrace('existQQ', { "qq": item.qq, "time": getFormattedTimestamp() })
                         updateQQItemStatus(item.index, -2, "二次确认QQ空间资料加人未备注上")
                         defaultConfig.naomalFinish = false;
-                        closeApp(item.qq,'QQ空间资料加人触发', false);
+                        closeApp(item,'QQ空间资料加人触发', false);
                         return;
                     } else {
                         defaultConfig.flagQQZonePorcessAdd = true;
@@ -1112,7 +1112,7 @@ function handleAddFriend(item, checkTimeout) {
                 sleepSelf(delayinteval);
                 updateQQItemStatus(item.index, -2, `${item.qq}选手在尝试从QQ空间资料加人就备注丢失的情况`)
                 defaultConfig.naomalFinish = false;
-                closeApp(item.qq,"QQ空间加人遭遇风控", false);
+                closeApp(item,"QQ空间加人遭遇风控", false);
                 return;
             } else {
                 defaultConfig.flagQQZonePorcessAdd = true;
@@ -1171,7 +1171,6 @@ function processAddFriend(item) {
         log(`${item.qq}用时:`,(new Date().getTime() - startTime) / 1000)
         if (new Date().getTime() - startTime > defaultConfig.operationItemtimeout) {
             log('已经超时本次任务两分钟了', defaultConfig.operationItemtimeout);
-            updateQQItemStatus(item.index,-1,"超时操作")
             return true;
         }
 
@@ -1181,12 +1180,7 @@ function processAddFriend(item) {
         toast('列表中存在不规范无法解析')
         return;
     }
-   
-    if(defaultConfig.userForceClose  === true || defaultConfig.naomalFinish === false){
-        return;
-    }
     log(`第${item.index + 1}位选手:${item.qq} 正在添加`)
-    sleepSelf(delayinteval);
     if (isEmptystr(item.qq)) {
         toast('列表中存在不规范的数据');
         return;
@@ -1352,7 +1346,10 @@ function dealFinishProcess() {
     ui.run(() => {
         startWindowBtn.startbtn.setText('开始')
     })
-    threads.shutDownAll();
+    if (autoScriptThread !== null && autoScriptThread.isAlive) {
+        autoScriptThread.interrupt();
+    }
+ 
     resetConfig();
     
 }
@@ -1464,7 +1461,7 @@ function startAddQQ() {
         }
         defaultConfig.index += 1;
         log('当前任务完结')
-    }
+        }
    
         dealFinishProcess();
         log('程序终止')
