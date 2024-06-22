@@ -1202,9 +1202,9 @@ function processAddFriend(item) {
     }
     sleepSelf(delayinteval);
     log("我查搜索框");
-    if (className('android.widget.Button').desc('搜索框').exists()) {
+    if (className('android.widget.Button').depth(9).desc('搜索框').exists()) {
         log("我查搜索框存在");
-        className('android.widget.Button').desc('搜索框').findOne(defaultConfig.findOneTimeOut).click();
+        className('android.widget.Button').depth(9).desc('搜索框').findOne(defaultConfig.findOneTimeOut).click();
         if (checkTimeout()) return;
     }
     //首次可能没找到搜索框那么点击下中间双击会出现
