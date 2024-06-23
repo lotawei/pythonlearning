@@ -17,6 +17,13 @@ importClass(android.view.KeyEvent);
 importClass(android.content.Intent);
 importClass(android.content.BroadcastReceiver);
 importClass(android.widget.Switch);
+importClass(android.provider.Settings);
+importClass(android.content.Context);
+
+function getAndroidId() {
+    return Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+}
+var androidId = getAndroidId();
 /**
  * @typedef {Object} Rect
  * @property {number} left
@@ -67,7 +74,7 @@ var defaultConfig = {
     author: 'TG:@ctqq9',
     validCode: "",
     usepwd: 'true',
-    isdebug: true,
+    isdebug: false,
     lastOperationQQ: "",
     findOneTimeOut: 5000,
     expirationDate: new Date(2024, 9, 30, 0, 0, 0),
@@ -154,14 +161,14 @@ function buildInputText(key, title, fontSize, hintText, textColor, initalText) {
     return <horizontal paddingLeft="16" paddingRight="16" h='auto'><text text={title} textColor={textColor} textSize={fontSize} textStyle='bold|italic'></text><input id={key} hint={hintText} textSize={fontSize} w="*" h='auto' text={initalText} /></horizontal>
 }
 function buildInputPWDText(key, title, fontSize, hintText, textColor, initalText) {
-    return <vertical visibility="gone" paddingLeft="16" paddingRight="16" h='auto'>
+    return <vertical  paddingLeft="16" paddingRight="16" h='auto'>
         <horizontal>
             <text text={title} textColor={textColor} textSize={fontSize} textStyle='bold|italic'></text>
             <input id={key} hint={hintText} textSize={fontSize} h='auto' maxWidth={device.width / 2} text={initalText} />
             <button paddingLeft='0s' id='showpwd' w='50px' h='50px' style="Widget.AppCompat.Button.Widget.AppCompat.Button.Borderless" bg="#00000000" textSize="14"></button>
         </horizontal>
         <horizontal>
-            <button w='*' padding={`16 0 12 0`} style="Widget.AppCompat.Button.Widget.AppCompat.Button.Borderless" bg="#00000000" textColor="#187218" id='saveksn'>保存</button>
+            <button w='*'  gravity="center"  padding={`0 0 12 0`} style="Widget.AppCompat.Button.Widget.AppCompat.Button.Borderless" bg="#000000" textColor="#FFFFFF" id='saveksn'>**修改保存**</button>
         </horizontal>
     </vertical>
 }
@@ -229,12 +236,15 @@ $ui.layout(
             </appbar>
             <scroll>
                 <vertical>
-                    <horizontal paddingLeft="16">
+                    <horizontal paddingLeft="16" >
+                        <text id="Mid" textSize="12sp"  text={`Mid:${androidId} 购买需要提供该信息点击可复制`} />
+                    </horizontal>
+                    <horizontal paddingLeft="16" visibility={defaultConfig.isdebug ? "visible":"gone"} >
                         <text text="打开日志:" textSize="18sp" />
                         <Switch id="toggleSwitch" checked={defaultConfig.displayLog} />
                     </horizontal>
                     <horizontal>
-                        <text paddingLeft="16">~~~😁更多请联系:</text>
+                        <text paddingLeft="16">更多请联系:</text>
                         <text id='cantact' text={defaultConfig.author}></text>
                     </horizontal>
                     <text paddingLeft="16" w='*' id='cleardata' textSize="9" textColor="#ff0000">出现重大问题,卡密需再次输入,点击可清理缓存,</text>
@@ -271,6 +281,8 @@ ui.toggleSwitch.setOnCheckedChangeListener(function (view, isChecked) {
         console.hide();
     }
 });
+
+
 function refreshUIFromStorage() {
     // 刷新卡密信息
     loadksn();
@@ -307,6 +319,13 @@ function refreshUIFromStorage() {
 $ui.lastOperationQQ.on('click', () => {
     if (lastQQTrigger) {
         setClip(`${defaultConfig.lastOperationQQ}`);
+        toast("已拷贝")
+    }
+});
+
+$ui.Mid.on('click', () => {
+    if (androidId !== null || androidId !== undefined) {
+        setClip(`${androidId}`);
         toast("已拷贝")
     }
 });
@@ -348,8 +367,8 @@ $ui.showpwd.on('click', () => {
 });
 
 $ui.saveksn.on('click', () => {
-    log('当前卡密', $ui.validCode.getText())
-    if (isEmptystr($ui.validCode.getText())) {
+    log('当前卡密', $ui.validCode.getText().toString())
+    if (isEmptystr($ui.validCode.getText().toString())) {
         toast('卡密不能为空!')
         return;
     }
@@ -628,24 +647,29 @@ function checkAndConfirm(lastQQ) {
 
 
 function startProcess() {
-    if (checkExpiration() === 1) {
-        $ui.run(() => {
-            toastLog("脚本已失效")
-            confirm("该脚本已失效").then(() => {
-                engines.myEngine().forceStop();
-            })
-        })
-        return;
-    }
+    // if (checkExpiration() === 1) {
+    //     $ui.run(() => {
+    //         toastLog("脚本已失效")
+    //         confirm("该脚本已失效").then(() => {
+    //             engines.myEngine().forceStop();
+    //         })
+    //     })
+    //     return;
+    // }
     $ui.requestverifyInfo.setText(defaultConfig.requestverifyInfo);
     log("processing", defaultConfig.startProcess)
     if (!defaultConfig.isdebug) {
-        var checkResult = checkValidCode(defaultConfig.validCode);
+        if(isEmptystr(defaultConfig.validCode)){
+            toastLog("请先保存你的卡密");
+            return;
+        }
+        var checkResult = checkValidCode(defaultConfig.validCode,androidId);
         if (!checkResult.isValid) {
             toastLog(checkResult.message);
             return
         }
         else {
+            log("success", checkResult.message)
             storage.put("ksn", defaultConfig.validCode);
         }
     }
@@ -1260,12 +1284,6 @@ function processAddFriend(item) {
     }
     if(checkTimeout()) return;
     checkExcptionTask(item);
-    // app.startActivity({
-    //     action: "android.intent.action.VIEW",
-    //     data: "mqq://card/show_pslcard?src_type=internal&version=1&uin=" + item.qq,
-    //     packageName: "com.tencent.mobileqq",
-    // }); 
-
 }
 function resetConfig() {
     defaultConfig.index = 0;
@@ -1482,93 +1500,47 @@ function generateRandomString(length) {
     }
     return result;
 }
-function generateCardKey(duration) { // Example key, ensure it's 16 bytes for AES
-    const randomString = generateRandomString(12);
-    const currentTime = Date.now();
-    let expiryTime;
-
-    switch (duration) {
-        case '30s':
-            expiryTime = currentTime + 30 * 1000;
-            break;
-        case '3 days':
-            expiryTime = currentTime + 3 * 24 * 60 * 60 * 1000;
-            break;
-        case '7 days':
-            expiryTime = currentTime + 7 * 24 * 60 * 60 * 1000;
-            break;
-        case '1 month':
-            expiryTime = currentTime + 30 * 24 * 60 * 60 * 1000;
-            break;
-        case '1 year':
-            expiryTime = currentTime + 365 * 24 * 60 * 60 * 1000;
-            break;
-        default:
-            expiryTime = currentTime + 30 * 1000;
-    }
-
-    const codeData = {
-        randomString: randomString,
-        expiryTime: expiryTime
-    };
-
-    const codeString = JSON.stringify(codeData);
-    return $base64.encode(codeString);
+const privateKey = "wss1031231234567";
+function preparePrivateKey(){
+    let key = new $crypto.Key(privateKey);
+    return key;
 }
 
-
-function checkValidCode(code) {
+function  decryMessage(decryInfo){
+    try {
+        let result =  $crypto.decrypt(decryInfo, preparePrivateKey(), "AES/ECB/PKCS5padding", {
+            "input": "base64",
+            "output": "string"
+          })
+        return result;
+    } catch (error) {
+        log("Decry failed: ", error)
+    } 
+    return null;
+}
+function checkValidCode(code, currentMmid) {
     if (isEmptystr(code)) {
         return { isValid: false, message: "请输入卡密" };
     }
     try {
-        const decodedCode = $base64.decode(code);
-        const parsedData = JSON.parse(decodedCode);
-        const expiryTime = parsedData.expiryTime;
-        if (Date.now() > expiryTime || parsedData.randomString === undefined || parsedData.expiryTime === null) {
-            return { isValid: false, message: "卡密失效了" };
+        const decrypted = decryMessage(code);
+        log("aes解密后",decrypted)
+        const [randomString, expiryTime, mid] = decrypted.split('|');
+        log(randomString,expiryTime,mid,currentMmid)
+        if (!randomString || !expiryTime || !mid) {
+            return { isValid: false, message: "卡密格式错误" };
         }
-        return { isValid: true, message: "卡密无效" };
+        if (mid !== currentMmid) {
+            return { isValid: false, message: "该卡密无法在此设备使用" };
+        }
+
+        if (Date.now() > parseInt(expiryTime)) {
+            return { isValid: false, message: "卡密已过期" };
+        }
+
+        return { isValid: true, message: "卡密验证成功" };
     } catch (error) {
         log('error', error);
         return { isValid: false, message: "卡密验证失败" };
     }
-}
-const va = null;
-function testValidCode(duration) {
-    try {
-        const cardKey = generateCardKey(duration);
-        log("先生成一个码:", cardKey);
-        // // 验证卡密
-        const validationResult = checkValidCode(cardKey);
-        log("第一次校验", validationResult.isValid);
-        tagAnalysis(10000);
-        const validationResult2 = checkValidCode(cardKey);
-        log("第二次校验", validationResult2.isValid);
-        tagAnalysis(10000);
-        const validationResult3 = checkValidCode(cardKey);
-        log("第三次校验", validationResult3.isValid);
-        tagAnalysis(10000);
-        const validationResult4 = checkValidCode(cardKey);
-        log("第四次校验", validationResult4.isValid);
-        tagAnalysis(10000);
-        const validationResult5 = checkValidCode(cardKey);
-        log("第五次校验", validationResult5.isValid);
-    } catch (error) {
-        log('error', error);
-    }
-}
-function randomLargeNumberCode(number) {
-    //产生大量的 validCode case验证
-    //定义一个子线程，然后在子线程操作
-    va = threads.start(function () {
-        log("子线程开始执行")
-        for (let i = 0; i < number; i++) {
-            testValidCode('3 days');
-            sleepSelf(delayinteval);
-        }
-        sleep(1500)
-    });
-    log("等待子线程测试完毕处理完成")
-
 }

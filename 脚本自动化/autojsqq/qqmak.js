@@ -173,6 +173,40 @@ function processAddFriend(item) {
     if(checkTimeout()) return;
     log('阻塞中')
 }
+events.observeToast();
+events.onToast(function(toast){
+    // if(toast.getText().includes("异常提示")){
+    //     handleException();
+    // }
+    log('检测',toast.getText())
+});
+function checkAndHandleDialog() {
+    log('检查中检查')
+    ui.run(() => {
+    var dialog = className("android.app.Dialog").findOne(1000);
+    if (dialog) {
+        console.log("检测到dialog弹窗");
+        // 尝试点击关闭按钮
+        var closeButton = dialog.findOne(text("关闭"));
+        if (closeButton) {
+            closeButton.click();
+        } else {
+            // 尝试点击取消按钮或其他可能存在的按钮
+            var cancelButton = dialog.findOne(text("取消"));
+            if (cancelButton) {
+                cancelButton.click();
+            } else {
+                // 如果没有找到关闭或取消按钮，尝试按返回键
+                back();
+            }
+        }
+    }});
+}
+threads.start(() => {
+    setInterval(checkAndHandleDialog, 3000);
+})
+
+// 定时检查弹窗
 function startScript(){
     // UtilLog(1,2,3,[123123])
     athread = threads.start(() =>{
@@ -180,11 +214,6 @@ function startScript(){
         sleep(2000);
         //com.tencent.mobileqq.profilecard.activity.FriendProfileCardActivity
         log(currentActivity())
-        for(var i = 0; i < 5; i++){
-            processAddFriend(i);
-            sleep(2000);
-        }
-
         // if( className("android.widget.Button").desc('确定').exists()){
         //     className("android.widget.Button").desc('确定').findOne(2000).click();
         //     // return;
