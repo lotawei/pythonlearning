@@ -977,6 +977,8 @@ function addFriendPageOperation(item, checkTimeout) {
             log("加好友按钮存在")
             className("android.widget.Button").text("加好友").findOne(defaultConfig.findOneTimeOut).click();
             sleepSelf(delayinteval + 3000);
+            checkExcptionTask(item);
+            sleepSelf(delayinteval);
             if (checkTimeout()) return;
             checkExcptionTask(item);
             log("点击了加好友按钮 检查备注")
@@ -1002,6 +1004,8 @@ function addFriendPageOperation(item, checkTimeout) {
                     className("android.widget.TextView").text("加好友").findOne(defaultConfig.findOneTimeOut).click()
                 }
                 sleepSelf(delayinteval);
+                checkExcptionTask(item);
+                sleepSelf(delayinteval);
                 if (checkTimeout()) return;
                 //再次尝试加好友
                 if (retryAddFriendByQQZone(item, checkTimeout)) {
@@ -1009,6 +1013,8 @@ function addFriendPageOperation(item, checkTimeout) {
                     if (className("android.widget.TextView").text("加好友").exists()) {
                         className("android.widget.TextView").text("加好友").findOne(defaultConfig.findOneTimeOut).click()
                     }
+                    sleepSelf(delayinteval);
+                    checkExcptionTask(item);
                     sleepSelf(delayinteval);
                     if (checkTimeout()) return;
                     checkExcptionTask(item)
@@ -1125,6 +1131,8 @@ function handleAddFriend(item, checkTimeout) {
             sleepSelf(delayinteval);
             if (className("android.widget.TextView").text("加好友").exists()) {
                 className("android.widget.TextView").text("加好友").findOne(defaultConfig.findOneTimeOut).click();
+                sleepSelf(delayinteval);
+                checkExcptionTask(item);
             } else {
                 updateQQItemStatus(item.index, -1, `${item.qq}QQ空间没找到加好友`)
                 return;
