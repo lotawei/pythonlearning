@@ -894,7 +894,7 @@ function closeApp(item,reason, byuserForce) {
 //录入验证信息的页面
 function retryAddFriendByQQZone(item, checkTimeout) {
     // 检查是否存在备注输入框
-    var bakexist = className("android.widget.EditText").depth(4).drawingOrder(1).exists();
+    var bakexist = className("android.widget.EditText").exists();
     if (bakexist) {
         var verifyobj = className("android.widget.EditText").findOne(defaultConfig.findOneTimeOut);
         verifyobj.click();
@@ -989,20 +989,19 @@ function addFriendPageOperation(item, checkTimeout) {
                 if (checkTimeout()) return;
                 log(`首次加人备注丢失选手${item.qq}尝试进QQ空间加人}`)
                 gestScorller();
-                if (className("android.widget.LinearLayout").desc('他的QQ空间').exists()) {
-                    className("android.widget.LinearLayout").desc('他的QQ空间').findOne(defaultConfig.findOneTimeOut).click();
+                if (className("android.widget.LinearLayout").descContains('QQ空间').exists()) {
+                    className("android.widget.LinearLayout").descContains('QQ空间').findOne(defaultConfig.findOneTimeOut).click();
                     sleepSelf(delayinteval + 2000);
                     if (checkTimeout()) return;
+                }else{
+                    updateQQItemStatus(item.index,-1,`${item.qq}QQ空间没找到`)
+                    loggerTrace(item.qq, { "code": "failed", "message": "进QQ空间加人失败", "data": JSON.stringify({ "qq": item.qq }) })
+                    return;
                 }
-                else if (className("android.widget.LinearLayout").desc('她的QQ空间').exists()) {
-                    className("android.widget.LinearLayout").desc('她的QQ空间').findOne(defaultConfig.findOneTimeOut).click();
-                    sleepSelf(delayinteval + 2000);
-                    if (checkTimeout()) return;
-                }
-                gestScorller();
                 if (className("android.widget.TextView").text("加好友").exists()) {
                     className("android.widget.TextView").text("加好友").findOne(defaultConfig.findOneTimeOut).click()
                 }
+                gestScorller();
                 sleepSelf(delayinteval);
                 checkExcptionTask(item);
                 sleepSelf(delayinteval);
@@ -1111,10 +1110,12 @@ function handleAddFriend(item, checkTimeout) {
         log('===============================已经有过QQ触发备注丢失的情况================================');
         log(`${item.qq}本次任务触发下}`);
         if (checkTimeout()) return;
-        if (className("android.widget.LinearLayout").desc('他的QQ空间').exists()) {
-            className("android.widget.LinearLayout").desc('他的QQ空间').findOne(defaultConfig.findOneTimeOut).click();
-        } else if (className("android.widget.LinearLayout").desc('她的QQ空间').exists()) {
-            className("android.widget.LinearLayout").desc('她的QQ空间').findOne(defaultConfig.findOneTimeOut).click();
+        if (className("android.widget.LinearLayout").descContains('QQ空间').exists()) {
+            className("android.widget.LinearLayout").descContains('QQ空间').findOne(defaultConfig.findOneTimeOut).click();
+        }else{
+            updateQQItemStatus(item.index, -1, `${item.qq}QQ空间没找到`)
+            loggerTrace(item.qq, { "code": "failed", "message": "进QQ空间加人失败", "data": JSON.stringify({ "qq": item.qq }) })
+            return;
         }
         sleepSelf(delayinteval);
         if (checkTimeout()) return;
