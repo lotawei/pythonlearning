@@ -1189,6 +1189,11 @@ function checkExcptionTask(item){
         back();
         return;
     }
+    if( className("android.widget.Button").text('去发短信').exists()){
+        updateQQItemStatus(item.index, -1, "该加人账号触发发短信验证")
+        back();
+        return;
+    }
 
 }
 
