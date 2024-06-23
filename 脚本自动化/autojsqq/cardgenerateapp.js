@@ -9,6 +9,7 @@ importClass(android.content.Context);
  * @property {string} mid //设备号
  * @property {string} generateTime //生成时间
  */
+
 function getAndroidId() {
     return Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
 }
@@ -91,7 +92,7 @@ function buildCardList(){
 }
 function  dialogCopyItem(item){
     dialogs.build({
-        title: "单选",
+        title: "选择要拷贝的内容",
         items: ["卡密", "Mid", "所有"],
         itemsSelectMode: "single",
         itemsSelectedIndex: 3

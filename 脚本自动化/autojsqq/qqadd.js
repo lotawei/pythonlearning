@@ -1118,10 +1118,9 @@ function handleAddFriend(item, checkTimeout) {
         if (className("android.widget.TextView").text("加好友").exists()) {
             className("android.widget.TextView").text("加好友").findOne(defaultConfig.findOneTimeOut).click();
         }
-
         sleepSelf(delayinteval);
+        checkExcptionTask(item);
         if (checkTimeout()) return;
-
         if (retryAddFriendByQQZone(item, checkTimeout)) {
             sleepSelf(delayinteval);
             if (className("android.widget.TextView").text("加好友").exists()) {
@@ -1160,6 +1159,7 @@ function handleAddFriend(item, checkTimeout) {
         if (className("android.widget.Button").text("加好友").exists()) {
             className("android.widget.Button").text("加好友").findOne(defaultConfig.findOneTimeOut).click();
             sleepSelf(delayinteval);
+            checkExcptionTask(item)
             if (checkTimeout()) return;
             if( className("android.widget.Button").desc('确定').exists()){
                 className("android.widget.Button").desc('确定').findOne(defaultConfig.findOneTimeOut).click();
@@ -1184,6 +1184,12 @@ function checkExcptionTask(item){
         updateQQItemStatus(item.index, -1, "该账号异常出现弹窗无法进行")
         return;
     }
+    if( className("android.widget.Button").desc('去发短信').exists()){
+        updateQQItemStatus(item.index, -1, "该加人账号触发发短信验证")
+        back();
+        return;
+    }
+
 }
 
 function processAddFriend(item) {
