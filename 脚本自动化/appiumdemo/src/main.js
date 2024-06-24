@@ -8,7 +8,7 @@ const capabilities = {
   "appium:automationName": "UiAutomator2",
   "appium:noReset":"true", // 是否重置
   "appium:fullReset":"false", //是否重置安装
-  "appium:newCommandTimeout":"", //没有命令多少退出
+  "appium:newCommandTimeout":"30000", //没有命令多少退出
 
 };
 
@@ -27,6 +27,7 @@ async function runTest() {
     await driver.pause(1000);
     const searchAdd = await driver.$('android=new UiSelector().resourceId("com.tencent.mm:id/jga")');
     await searchAdd.click();
+    
     await driver.pause();
   }catch(error){
     console.log('error',error)

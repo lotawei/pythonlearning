@@ -75,7 +75,7 @@ var defaultConfig = {
     author: 'TG:@ctqq9',
     validCode: "",
     usepwd: 'true',
-    isdebug: false,
+    isdebug: true,
     lastOperationQQ: "",
     findOneTimeOut: 5000,
     expirationDate: new Date(2024, 9, 30, 0, 0, 0),
@@ -222,7 +222,12 @@ function  buildDateSelectPic(){
         <button id="autoscheme" w='*'   style="Widget.AppCompat.Button.Widget.AppCompat.Button.Borderless" bg="#000000" textColor="#FFFFFF"  text="  设置定时时间"></button>
    </horizontal>
 }
+function  updateTimeElement(){
+    ui.run(() => {
+        ui.datestart.setText(getFormattedTimestamp( defaultConfig.schemeTaskByTimeDay))
+    })
 
+}
 
 function buildInputText2(key, title, fontSize, textColor) {
     return <horizontal paddingLeft="16" paddingRight="16" h='auto'><text id={key} text={title} textColor={textColor} textSize={fontSize} textStyle='bold|italic'></text></horizontal>
@@ -329,6 +334,7 @@ ui.autoscheme.on('click', () => {
             return;
         }
         defaultConfig.schemeTaskByTimeDay = date;
+        updateTimeElement();
         scheduleTaskAtSpecificTime(defaultConfig.schemeTaskByTimeDay,schemeTaskByTimeDay)
         toastLog('保存成功')
    })
