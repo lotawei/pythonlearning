@@ -1,5 +1,4 @@
 "ui";
-auto.waitFor();
 importClass(android.provider.Settings);
 importClass(android.content.Context);
 /**

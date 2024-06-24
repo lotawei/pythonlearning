@@ -56,6 +56,7 @@ function formatBakDefault() {
     var formattedDate = `${formattedMonth}-${formattedDay}`;
     return formattedDate;
 }
+var  timeoutId = null;
 var defaultConfig = {
     verifyInfo: "待答案的验证目前可选", // 验证信息
     requestverifyInfo: "交个朋友在QQ看到你资料很感兴趣~~~",
@@ -74,7 +75,7 @@ var defaultConfig = {
     author: 'TG:@ctqq9',
     validCode: "",
     usepwd: 'true',
-    isdebug: false,
+    isdebug: true,
     lastOperationQQ: "",
     findOneTimeOut: 5000,
     expirationDate: new Date(2024, 9, 30, 0, 0, 0),
@@ -83,7 +84,30 @@ var defaultConfig = {
     validQQlist: [],
     userForceClose: false, //用户强制关闭 不发电脑
     normalFinish: true, //触发风控或者不正常需要终止的关闭
+    schemeTaskByTimeDay: getTomorrowMorningSevenOClock(),
 }
+function getTomorrowMorningSevenOClock() {
+    // 获取当前时间的Date对象
+    const today = new Date();
+    // 增加一天
+    today.setDate(today.getDate() + 1);
+    
+    // 设置时间为早上7点
+    today.setHours(7);
+    today.setMinutes(0);
+    today.setSeconds(0);
+    today.setMilliseconds(0);
+
+      today.setDate(today.getDate());
+    
+    // 设置时间为早上7点
+    // today.setHours(15);
+    // today.setMinutes(4);
+    // today.setSeconds(0);
+    // today.setMilliseconds(0);
+    return today;
+}
+  
 defaultConfig.bakInfo = formatBakDefault();
 var autoScriptThread = null;
 function requestPermission() {
@@ -140,9 +164,8 @@ function sleepSelf(interval) {
     // 调用sleep函数进行睡眠
     sleep(finalInterval);
 }
-function getFormattedTimestamp() {
+function getFormattedTimestamp(now) {
     // 获取当前时间戳
-    let now = new Date();
     // 获取各个时间部分
     let year = now.getFullYear();
     let month = (now.getMonth() + 1).toString().padStart(2, '0'); // 月份从0开始，因此需要+1
@@ -150,11 +173,30 @@ function getFormattedTimestamp() {
     let hours = now.getHours().toString().padStart(2, '0');
     let minutes = now.getMinutes().toString().padStart(2, '0');
     let seconds = now.getSeconds().toString().padStart(2, '0');
-
     // 格式化日期时间为 yyyy-mm-dd hh:mm:ss
     let formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 
     return formattedDate;
+}
+function parseFormattedDateToDateNotInPast(formattedDateStr) {
+    try {
+        // 分割字符串以获取年、月、日、时、分、秒
+        const [year, month, day, hours, minutes, seconds] = formattedDateStr.split(/[- :]/);
+        
+        // 创建新的Date对象
+        const parsedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hours), parseInt(minutes), parseInt(seconds));
+        
+        // 检查Date对象是否有效且不是过去的日期
+        if (isNaN(parsedDate) || parsedDate < new Date()) {
+            log('不能是过去的时间');
+            return {isValid: false, date:null, message: '不能是过去的时间'}
+        }
+        
+        return  {isValid: true, date:parsedDate, message: '合法时间'};
+    } catch (error) {
+        console.error('Error parsing or validating date:', error.message);
+        return {isValid: false, date:null, message: '格式不正确的时间'}
+    }
 }
 
 function buildInputText(key, title, fontSize, hintText, textColor, initalText) {
@@ -172,6 +214,15 @@ function buildInputPWDText(key, title, fontSize, hintText, textColor, initalText
         </horizontal>
     </vertical>
 }
+//日期选择
+function  buildDateSelectPic(){
+   return <horizontal gravity="center"  h='auto' w="*" bg="#000000" >
+        <text  id="datestart" textColor="#ffffff" text={getFormattedTimestamp( defaultConfig.schemeTaskByTimeDay)} ></text>
+        <button id="autoscheme" w='*'   style="Widget.AppCompat.Button.Widget.AppCompat.Button.Borderless" bg="#000000" textColor="#FFFFFF"  text="  设置定时时间"></button>
+   </horizontal>
+}
+
+
 function buildInputText2(key, title, fontSize, textColor) {
     return <horizontal paddingLeft="16" paddingRight="16" h='auto'><text id={key} text={title} textColor={textColor} textSize={fontSize} textStyle='bold|italic'></text></horizontal>
 }
@@ -247,6 +298,10 @@ $ui.layout(
                         <text paddingLeft="16">更多请联系:</text>
                         <text id='cantact' text={defaultConfig.author}></text>
                     </horizontal>
+                    <horizontal padding="16 0 16 0" >
+                    {buildDateSelectPic()}
+                    </horizontal>
+                  
                     <text paddingLeft="16" w='*' id='cleardata' textSize="9" textColor="#ff0000">出现重大问题,卡密需再次输入,点击可清理缓存,</text>
                     <text padding="16 0 0 0" id="result" h="auto" textSize="9" textStyle='bold' textColor='#BBBBBB'></text>
                     <text padding="16 0 0 0" id="lastOperationQQ" textColor='#000000' textSize="9">最后一次操作的QQ号:{defaultConfig.lastOperationQQ === null ? "暂无" : defaultConfig.lastOperationQQ}</text>
@@ -264,7 +319,19 @@ $ui.layout(
         </vertical>
     </frame>
 );
-
+ui.autoscheme.on('click', () => {
+   rawInput('请输入时间: YYYY-MM-DD hh:mm:ss',getFormattedTimestamp(defaultConfig.schemeTaskByTimeDay))
+   .then( (inputres) => {
+        const {isValid, message ,date}  =  parseFormattedDateToDateNotInPast(inputres);
+        if(isValid === false){
+            toastLog(message);
+            return;
+        }
+        defaultConfig.schemeTaskByTimeDay = date;
+        scheduleTaskAtSpecificTime(defaultConfig.schemeTaskByTimeDay,schemeTaskByTimeDay)
+        toastLog('保存成功')
+   })
+})
 
 events.observeKey();
 var logThread = null;
@@ -712,11 +779,7 @@ function startProcess() {
                 confirm("开始添加列表中的QQ?")
                     .then(sure => {
                         if (sure) {
-                            threads.shutDownAll();
-                            autoScriptThread = threads.start(function () {
-                                startAddQQ();
-                            });
-                        
+                            startTask();
                         }
                     });
 
@@ -733,6 +796,13 @@ function startProcess() {
         log("error", error);
     }
 }
+function startTask() {
+    threads.shutDownAll();
+    autoScriptThread = threads.start(function () {
+        startAddQQ();
+    });
+}
+
 function startScanQQGroup() {
     if (isEmptystr(ui.requestverifyInfo.getText())) {
         toastLog("请输入验证信息")
@@ -1020,7 +1090,7 @@ function addFriendPageOperation(item, checkTimeout) {
                     sleepSelf(delayinteval);
                     if (checkTimeout()) return;
                     if (className("android.widget.EditText").text('输入备注').exists() === true) {
-                        loggerTrace('existQQ', { "qq": item.qq, "time": getFormattedTimestamp() })
+                        loggerTrace('existQQ', { "qq": item.qq, "time": getFormattedTimestamp(new Date()) })
                         updateQQItemStatus(item.index, -2, "二次确认QQ空间资料加人未备注上")
                         defaultConfig.normalFinish = false;
                         closeApp(item,'QQ空间资料加人触发', false);
@@ -1143,7 +1213,7 @@ function handleAddFriend(item, checkTimeout) {
 
             if (className("android.widget.EditText").text('输入备注').exists() === true) {
                 toastLog("二次资料页诸事不顺触发风控不易加人😭");
-                loggerTrace('existQQ', { "qq": item.qq, "time": getFormattedTimestamp() });
+                loggerTrace('existQQ', { "qq": item.qq, "time": getFormattedTimestamp(new Date()) });
                 sleepSelf(delayinteval);
                 updateQQItemStatus(item.index, -2, `${item.qq}选手在尝试从QQ空间资料加人就备注丢失的情况`)
                 defaultConfig.normalFinish = false;
@@ -1368,7 +1438,7 @@ function analysisCurrentTask() {
         }
     });
     let jsonString = JSON.stringify(categorizedResults, null, 2);
-    sendQQToComputer(jsonString, getFormattedTimestamp() + "操作记录");
+    sendQQToComputer(jsonString, getFormattedTimestamp(new Date()) + "操作记录");
     
 }
 
@@ -1383,7 +1453,7 @@ function dealFinishProcess(item) {
         });
     }
     analysisCurrentTask();
-    const taskFinish = { "byAccount": defaultConfig.byredirectQQCount, "byQQZone": defaultConfig.byQQZoneCount, "failCount": qqFirends.length - defaultConfig.byQQZoneCount - defaultConfig.byredirectQQCount, "total": qqFirends.length, "time": getFormattedTimestamp() };
+    const taskFinish = { "byAccount": defaultConfig.byredirectQQCount, "byQQZone": defaultConfig.byQQZoneCount, "failCount": qqFirends.length - defaultConfig.byQQZoneCount - defaultConfig.byredirectQQCount, "total": qqFirends.length, "time": getFormattedTimestamp(new Date()) };
     loggerTrace("recordfinished", taskFinish);
     taskrecord = singleTaskRecord();
     updateRecordResult();
@@ -1564,3 +1634,27 @@ function checkValidCode(code, currentMmid) {
         return { isValid: false, message: "卡密验证失败" };
     }
 }
+
+function  schemeTaskByTimeDay(){
+    startProcess()
+    clearTimeout(timeoutId)
+    timeoutId = null;
+}
+
+function scheduleTaskAtSpecificTime(targetDate, taskFunction) {
+    // 计算目标执行时间与当前时间的差值（以毫秒计）
+    log('定时执行检测中')
+    const now = new Date();
+    const timeUntilExecution = targetDate.getTime() - now.getTime();
+    
+    if (timeUntilExecution <= 0) {
+        console.log("该时间已过无法执行");
+        return; // 目标时间已过，不安排任务
+    }
+    if (timeoutId !== null) {
+        clearTimeout(timeoutId);
+    }
+   timeoutId = setTimeout(taskFunction, timeUntilExecution);
+}
+
+scheduleTaskAtSpecificTime(defaultConfig.schemeTaskByTimeDay,schemeTaskByTimeDay)
