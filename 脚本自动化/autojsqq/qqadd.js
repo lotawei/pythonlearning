@@ -75,7 +75,7 @@ var defaultConfig = {
     author: 'TG:@ctqq9',
     validCode: "",
     usepwd: 'true',
-    isdebug: true,
+    isdebug: false,
     lastOperationQQ: "",
     findOneTimeOut: 5000,
     expirationDate: new Date(2024, 9, 30, 0, 0, 0),
@@ -85,6 +85,7 @@ var defaultConfig = {
     userForceClose: false, //用户强制关闭 不发电脑
     normalFinish: true, //触发风控或者不正常需要终止的关闭
     schemeTaskByTimeDay: getTomorrowMorningSevenOClock(),
+    enterByAutoScheme: false,
 }
 function getTomorrowMorningSevenOClock() {
     // 获取当前时间的Date对象
@@ -679,6 +680,7 @@ function checkAndConfirm(lastQQ) {
         let index = qqFirends.findIndex(friend => friend.qq === lastQQ);
         if (index !== -1 && index < qqFirends.length - 1) {
             // 弹出确认窗口
+            if(defaultConfig.enterByAutoScheme === false) {
             confirm("确认", `是否截取QQ号 ${lastQQ} 之后的所有QQ号?,取消使用录入数据忽略上次操作`)
                 .then(sure => {
                     if (sure) {
@@ -702,6 +704,26 @@ function checkAndConfirm(lastQQ) {
                     log("更新后的数据", qqFirends);
                     resolve();
                 });
+            }else{
+                // 截取 lastQQ 之后的数据
+                var updatedQqFirends = qqFirends.slice(index).map(function (e, i) {
+                        return {
+                            index: i,
+                            qq: e.qq,
+                            requestverifyInfo: e.requestverifyInfo,
+                            bakInfo: e.bakInfo,
+                            status: e.status,
+                            statusMessage: e.statusMessage
+                        };
+                });
+                // 更新数据源
+                qqFirends = updatedQqFirends;
+                // 更新数据源
+                $ui.waitqqlist.setDataSource(qqFirends);
+                $ui.qqcount.setText(`qq计数：共${qqFirends.length}条`);
+                log("更新后的数据", qqFirends);
+                resolve();
+            }
         } else {
             $ui.waitqqlist.setDataSource(qqFirends);
             $ui.qqcount.setText(`qq计数：共${qqFirends.length}条`);
@@ -1385,6 +1407,10 @@ function resetConfig() {
     defaultConfig.flagQQZonePorcessAdd = false;
     defaultConfig.userForceClose = false;
     defaultConfig.normalFinish = true;
+    //定时相关的
+    defaultConfig.schemeTaskByTimeDay = getTomorrowMorningSevenOClock()
+    defaultConfig.enterByAutoScheme = false;
+    scheduleTaskAtSpecificTime(defaultConfig.schemeTaskByTimeDay,schemeTaskByTimeDay)
 }
 
 
@@ -1636,6 +1662,7 @@ function checkValidCode(code, currentMmid) {
 }
 
 function  schemeTaskByTimeDay(){
+    defaultConfig.enterByAutoScheme = true;
     startProcess()
     clearTimeout(timeoutId)
     timeoutId = null;
