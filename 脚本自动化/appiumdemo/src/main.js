@@ -3,11 +3,12 @@ const capabilities = {
   'appium:platformName': 'Android',
   'appium:automationName': 'UiAutomator2',
   'appium:deviceName': 'emulator-5554',
-  'appium:appPackage': 'com.tencent.mobileqq',
-  "appium:appActivity": "com.tencent.mobileqq.activity.SplashActivity",
+  'appium:appPackage': 'com.tencent.mm',
+  "appium:appActivity": "com.tencent.mm.ui.LauncherUI",
   "appium:automationName": "UiAutomator2",
   "appium:noReset":"true", // 是否重置
-  "appium:fullReset":"false" //是否重置安装
+  "appium:fullReset":"false", //是否重置安装
+  "appium:newCommandTimeout":"", //没有命令多少退出
 
 };
 
@@ -24,10 +25,9 @@ async function runTest() {
   console.log("开始怕群")
   try{
     await driver.pause(1000);
-    
-    const searchBox = await driver.$('android=new UiSelector().resourceId("com.tencent.mobileqq:id/wqq")');
-    await searchBox.click();
-    await driver.pause(1000);
+    const searchAdd = await driver.$('android=new UiSelector().resourceId("com.tencent.mm:id/jga")');
+    await searchAdd.click();
+    await driver.pause();
   }catch(error){
     console.log('error',error)
   }

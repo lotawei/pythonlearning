@@ -798,12 +798,17 @@ function startProcess() {
                     toastLog("请先设置要添加的QQ列表或者手动录入");
                     return;
                 }
-                confirm("开始添加列表中的QQ?")
+                if(defaultConfig.enterByAutoScheme === false){
+                    confirm("开始添加列表中的QQ?")
                     .then(sure => {
                         if (sure) {
                             startTask();
                         }
-                    });
+                });
+                }else{
+                    startTask();
+                }
+             
 
             });
         }
