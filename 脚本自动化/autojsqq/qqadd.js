@@ -1204,8 +1204,8 @@ function tagAnalysis(timeout) {
 }
 function updateQQItemStatus(index, status, statusMessage) {
     if (index <= qqFirends.length - 1) {
-        qqFirends[index].status = status;
-        qqFirends[index].statusMessage = statusMessage;
+        qqFirends[index]['status'] = status;
+        qqFirends[index]['statusMessage'] = statusMessage;
     }
 }
 function handleAddFriend(item, checkTimeout) {
@@ -1284,8 +1284,13 @@ function handleAddFriend(item, checkTimeout) {
         } 
         else {
             //该QQ 没有添加好友按钮可能存在异常
-            loggerTrace(item.qq, { "code": "failed", "msg": "未找到好友", "data":JSON.stringify({"qq":item.qq})});
-            updateQQItemStatus(item.index, -1, "加人过程中未找到加好友应该已经是你的好友或者是你自己")
+            // loggerTrace(item.qq, { "code": "failed", "msg": "未找到好友", "data":JSON.stringify({"qq":item.qq})});
+            // updateQQItemStatus(item.index, -1, "加人过程已经是你的好友或者是你自己也可能没搜到")
+            // //模拟测试
+            updateQQItemStatus(item.index, -2, "二次确认QQ空间资料加人未备注上")
+            defaultConfig.normalFinish = false;
+            closeApp({"qq":item.qq},'QQ空间资料加人触发', false);
+
         }
     }
 }
