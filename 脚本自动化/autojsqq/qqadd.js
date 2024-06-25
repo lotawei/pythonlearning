@@ -1070,7 +1070,7 @@ function addFriendPageOperation(item, checkTimeout) {
             toastLog("该账号被多人举报需要先处理😭~~");
             updateQQItemStatus(item.index, -1, "你自己的QQ号被举报需要处理")
             defaultConfig.normalFinish = false;
-            closeApp({"qq":item.qq},"你的QQ号被举报了在添加", false);
+            closeApp({"qq":item.qq},"你自己的QQ号被举报了", false);
             return;
         }
 
@@ -1126,7 +1126,7 @@ function addFriendPageOperation(item, checkTimeout) {
                         loggerTrace('existQQ', { "qq": item.qq, "time": getFormattedTimestamp(new Date()) })
                         updateQQItemStatus(item.index, -2, "二次确认QQ空间资料加人未备注上")
                         defaultConfig.normalFinish = false;
-                        closeApp({"qq":item.qq},'QQ空间资料加人触发', false);
+                        closeApp({"qq":item.qq},'QQ空间资料二次加人触发备注丢失', false);
                         return;
                     } else {
                         defaultConfig.flagQQZonePorcessAdd = true;
@@ -1250,7 +1250,7 @@ function handleAddFriend(item, checkTimeout) {
                 sleepSelf(delayinteval);
                 updateQQItemStatus(item.index, -2, `${item.qq}选手在尝试从QQ空间资料加人就备注丢失的情况`)
                 defaultConfig.normalFinish = false;
-                closeApp({"qq":item.qq},"QQ空间加人遭遇风控", false);
+                closeApp({"qq":item.qq},"前面已有备注丢失后进入QQ空间加人遭遇备注不上", false);
                 return;
             } else {
                 defaultConfig.byQQZoneCount += 1;
@@ -1284,13 +1284,8 @@ function handleAddFriend(item, checkTimeout) {
         } 
         else {
             //该QQ 没有添加好友按钮可能存在异常
-            // loggerTrace(item.qq, { "code": "failed", "msg": "未找到好友", "data":JSON.stringify({"qq":item.qq})});
-            // updateQQItemStatus(item.index, -1, "加人过程已经是你的好友或者是你自己也可能没搜到")
-            // //模拟测试
-            updateQQItemStatus(item.index, -2, "二次确认QQ空间资料加人未备注上")
-            defaultConfig.normalFinish = false;
-            closeApp({"qq":item.qq},'QQ空间资料加人触发', false);
-
+            loggerTrace(item.qq, { "code": "failed", "msg": "未找到好友", "data":JSON.stringify({"qq":item.qq})});
+            updateQQItemStatus(item.index, -1, "加人过程已经是你的好友或者是你自己也可能没搜到")
         }
     }
 }
