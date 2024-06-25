@@ -49,8 +49,10 @@ async function  loadWidData() {
     try {
       const filepath = path.join(__dirname, 'testwx.txt');
       const data = await fsPromises.readFile(filepath, 'utf8');
-      console.log('data', data);
-      const originalWids = data.split('\n');
+  
+      const trimmedData = data.trim();
+      console.log('trimmedData', trimmedData);
+      const originalWids = trimmedData.split('\n').map(line => line.trim());
       originalWids.forEach(item => {
           wids.push(new WeTaskInfo(item, 0, "",configInfo.bakInfo));
       });
@@ -172,10 +174,8 @@ async function runScriptMain(driver,wxtask) {
     await searchButton.click();
     await waitForSecond(driver)
     
-   
-    const  yichang = await driver.$('android=new UiSelector().className("android.widget.TextView").textContains(\"异常\")').isDisplayed()
-
-    const  bucunzai = await driver.$('android=new UiSelector().className("android.widget.TextView").textContains(\"不存在\")').isDisplayed()
+    const  yichang = await driver.$('android=new UiSelector().className("android.widget.TextView").textContains(\"异常\")')?.isDisplayed() ?? false
+    const  bucunzai = await driver.$('android=new UiSelector().className("android.widget.TextView").textContains(\"不存在\")')?.isDisplayed() ?? false
     log('异常和存在与否',yichang,bucunzai);
     if(yichang || bucunzai){
       wxtask.status = -1 
