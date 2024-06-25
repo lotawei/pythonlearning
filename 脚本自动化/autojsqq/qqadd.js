@@ -777,7 +777,7 @@ function startProcess() {
                         const  indexItem = defaultConfig.index <= qqFirends.length -1 ? qqFirends[defaultConfig.index]:null;
                         defaultConfig.userForceClose = true;
                         defaultConfig.normalFinish = false;
-                        closeApp(indexItem === null ? '未记录到任务':indexItem,'用户取消了本次任务', true);
+                        closeApp(indexItem === null ? '未记录到任务':{"qq":indexItem.qq},'用户取消了本次任务', true);
                     }
                 }
             });
@@ -1070,7 +1070,7 @@ function addFriendPageOperation(item, checkTimeout) {
             toastLog("该账号被多人举报需要先处理😭~~");
             updateQQItemStatus(item.index, -1, "你自己的QQ号被举报需要处理")
             defaultConfig.normalFinish = false;
-            closeApp(item,"你的QQ号被举报了在添加", false);
+            closeApp({"qq":item.qq},"你的QQ号被举报了在添加", false);
             return;
         }
 
@@ -1126,7 +1126,7 @@ function addFriendPageOperation(item, checkTimeout) {
                         loggerTrace('existQQ', { "qq": item.qq, "time": getFormattedTimestamp(new Date()) })
                         updateQQItemStatus(item.index, -2, "二次确认QQ空间资料加人未备注上")
                         defaultConfig.normalFinish = false;
-                        closeApp(item,'QQ空间资料加人触发', false);
+                        closeApp({"qq":item.qq},'QQ空间资料加人触发', false);
                         return;
                     } else {
                         defaultConfig.flagQQZonePorcessAdd = true;
@@ -1250,7 +1250,7 @@ function handleAddFriend(item, checkTimeout) {
                 sleepSelf(delayinteval);
                 updateQQItemStatus(item.index, -2, `${item.qq}选手在尝试从QQ空间资料加人就备注丢失的情况`)
                 defaultConfig.normalFinish = false;
-                closeApp(item,"QQ空间加人遭遇风控", false);
+                closeApp({"qq":item.qq},"QQ空间加人遭遇风控", false);
                 return;
             } else {
                 defaultConfig.byQQZoneCount += 1;
@@ -1264,7 +1264,7 @@ function handleAddFriend(item, checkTimeout) {
         // 检查是否有异常账号弹窗
         if (className("android.widget.Button").text("确认").exists()) {
             updateQQItemStatus(item.index, -1, "该QQ账号异常")
-            loggerTrace(item.qq, { "code": "failed", "msg": "该qq异常无法添加", "data":JSON.stringify({"item":item.qq}) });
+            loggerTrace(item.qq, { "code": "failed", "msg": "该qq异常无法添加", "data":JSON.stringify({"qq":item.qq}) });
             return;
         }
         // 检查是否有加好友按钮
@@ -1284,7 +1284,7 @@ function handleAddFriend(item, checkTimeout) {
         } 
         else {
             //该QQ 没有添加好友按钮可能存在异常
-            loggerTrace(item.qq, { "code": "failed", "msg": "未找到好友", "data":JSON.stringify({"item":item.qq})});
+            loggerTrace(item.qq, { "code": "failed", "msg": "未找到好友", "data":JSON.stringify({"qq":item.qq})});
             updateQQItemStatus(item.index, -1, "加人过程中未找到加好友应该已经是你的好友或者是你自己")
         }
     }
@@ -1345,7 +1345,7 @@ function processAddFriend(item) {
     }
     if (checkTimeout()) return;
     findTabIndex(0);
-    if (className("android.widget.RelativeLayout").clickable(true).exists()) {
+    if (className("android.widget.RelativeLayout").depth(4).clickable(true).exists()) {
         className("android.widget.RelativeLayout").depth(4).clickable(true).findOne(defaultConfig.findOneTimeOut).click()
     }
     sleepSelf(delayinteval);
@@ -1396,7 +1396,7 @@ function processAddFriend(item) {
     log('================================cool================================', userInfo)
     if (checkTimeout()) return;
     if (userInfo === null) {
-        loggerTrace(item.qq, { 'code': "failed", 'msg': '该QQ不存在' ,"data":JSON.stringify({"item":item.qq})})
+        loggerTrace(item.qq, { 'code': "failed", 'msg': '该QQ不存在' ,"data":JSON.stringify({"qq":item.qq})})
         updateQQItemStatus(item.index,-1,'qq未搜索到不存在')
         return;
     } else {
@@ -1526,7 +1526,7 @@ function findTabIndex(index) {
     }
 }
 function sendQQToComputer(lastqq, reason) {
-    const sendinfo = typeof lastqq === "string" ? lastqq : JSON.stringify(lastqq);
+    const sendinfo = typeof lastqq === "string" ? lastqq : lastqq.qq;
     log(`发结果到文件 ${sendinfo} ${reason},${threads.currentThread()}`);
     if (returnToHomeScreen()) {
         findTabIndex(3);
