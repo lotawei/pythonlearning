@@ -1,13 +1,23 @@
-fragrant 添加成功 加好友成功 待验证
-wx1293919 添加成功 加好友成功 待验证
-18780201006 添加成功 加好友成功 待验证
-2024-06-24 19:14:41本次统计结果
+wx123123131 添加异常 好友不存在
+wsuuadq22222 添加异常 好友不存在
+18780201006 添加异常 Invalid CSS selector 'new UiSelector().className("android.widget.EditText").resourceId("com.tencent.mm:id/m9y")'. Reason: 'Error: Rule expected but "(" found.'
+invalid selector: Invalid CSS selector 'new UiSelector().className("android.widget.EditText").resourceId("com.tencent.mm:id/m9y")'. Reason: 'Error: Rule expected but "(" found.'
+    at getErrorFromResponseBody (file:///Users/work/Documents/GitHub/pythonlearning/%E8%84%9A%E6%9C%AC%E8%87%AA%E5%8A%A8%E5%8C%96/appiumdemo/node_modules/.pnpm/webdriver@8.39.0/node_modules/webdriver/build/utils.js:195:12)
+    at NodeJSRequest._request (file:///Users/work/Documents/GitHub/pythonlearning/%E8%84%9A%E6%9C%AC%E8%87%AA%E5%8A%A8%E5%8C%96/appiumdemo/node_modules/.pnpm/webdriver@8.39.0/node_modules/webdriver/build/request/index.js:193:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Browser.wrapCommandFn (file:///Users/work/Documents/GitHub/pythonlearning/%E8%84%9A%E6%9C%AC%E8%87%AA%E5%8A%A8%E5%8C%96/appiumdemo/node_modules/.pnpm/@wdio+utils@8.39.0/node_modules/@wdio/utils/build/shim.js:90:29)
+    at async Browser.$ (file:///Users/work/Documents/GitHub/pythonlearning/%E8%84%9A%E6%9C%AC%E8%87%AA%E5%8A%A8%E5%8C%96/appiumdemo/node_modules/.pnpm/webdriverio@8.39.0/node_modules/webdriverio/build/commands/browser/$.js:74:17)
+    at async Browser.wrapCommandFn (file:///Users/work/Documents/GitHub/pythonlearning/%E8%84%9A%E6%9C%AC%E8%87%AA%E5%8A%A8%E5%8C%96/appiumdemo/node_modules/.pnpm/@wdio+utils@8.39.0/node_modules/@wdio/utils/build/shim.js:90:29)
+    at async runScriptMain (/Users/work/Documents/GitHub/pythonlearning/脚本自动化/appiumdemo/src/main.js:193:7)
+    at async runMain (/Users/work/Documents/GitHub/pythonlearning/脚本自动化/appiumdemo/src/main.js:112:15)
+ 添加异常 Can't call click on element with selector "android=new UiSelector().resourceId("com.tencent.mm:id/o_q")" because element wasn't found
+Error: Can't call click on element with selector "android=new UiSelector().resourceId("com.tencent.mm:id/o_q")" because element wasn't found
+    at implicitWait (file:///Users/work/Documents/GitHub/pythonlearning/%E8%84%9A%E6%9C%AC%E8%87%AA%E5%8A%A8%E5%8C%96/appiumdemo/node_modules/.pnpm/webdriverio@8.39.0/node_modules/webdriverio/build/utils/implicitWait.js:29:19)
+    at async Element.elementErrorHandlerCallbackFn (file:///Users/work/Documents/GitHub/pythonlearning/%E8%84%9A%E6%9C%AC%E8%87%AA%E5%8A%A8%E5%8C%96/appiumdemo/node_modules/.pnpm/webdriverio@8.39.0/node_modules/webdriverio/build/middlewares.js:15:29)
+    at async Element.wrapCommandFn (file:///Users/work/Documents/GitHub/pythonlearning/%E8%84%9A%E6%9C%AC%E8%87%AA%E5%8A%A8%E5%8C%96/appiumdemo/node_modules/.pnpm/@wdio+utils@8.39.0/node_modules/@wdio/utils/build/shim.js:90:29)
+    at async runScriptMain (/Users/work/Documents/GitHub/pythonlearning/脚本自动化/appiumdemo/src/main.js:172:5)
+    at async runMain (/Users/work/Documents/GitHub/pythonlearning/脚本自动化/appiumdemo/src/main.js:112:15)
+2024-06-25 16:23:24本次统计结果
 未添加的任务数: 0
-添加成功的任务数: 3
-出现异常的任务数: 0fragrant 添加成功 加好友成功 待验证
-wx1293919 添加成功 加好友成功 待验证
-18780201006 添加成功 加好友成功 待验证
-2024-06-24 19:16:13本次统计结果
-未添加的任务数: 0
-添加成功的任务数: 3
-出现异常的任务数: 0
+添加成功的任务数: 0
+出现异常的任务数: 4

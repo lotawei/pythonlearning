@@ -75,7 +75,7 @@ var defaultConfig = {
     author: 'TG:@ctqq9',
     validCode: "",
     usepwd: 'true',
-    isdebug: true,
+    isdebug: false,
     lastOperationQQ: "",
     findOneTimeOut: 5000,
     expirationDate: new Date(2024, 9, 30, 0, 0, 0),

@@ -61,27 +61,6 @@ async function  loadWidData() {
     return [];
      
 }
-async function isElementPresent(selector) {
-  try {
-      // 尝试查找元素
-      var  res = await driver.$(selector);
-      console.log("结果元素",...res)
-      if(res.error !== null && res.error !== undefined){
-        return false
-      }
-      // 如果成功找到元素，没有抛出异常，则元素存在
-      return true;
-  } catch (error) {
-      // 捕获NoSuchElementError或其他错误
-      if (error.name === 'NoSuchElementError') {
-          // 元素不存在
-          return false;
-      } else {
-          // 其他类型的错误，可能需要特殊处理
-          return  false
-      }
-  }
-}
 async function dealFinish() {
   wids.sort((a,b) =>  a.status - b.status )
   let resultText = '';
@@ -194,39 +173,45 @@ async function runScriptMain(driver,wxtask) {
     await waitForSecond(driver)
     
    
-    const  isexist = await isElementPresent('android=new UiSelector().resourceId("com.tencent.mm:id/cam")')
-    log('xxx搜索到',isexist)
-    if(isexist  === true){
-        wxtask.status = -1 
-        wxtask.message = '好友不存在'
-        await backHome(driver)
-        await waitForSecond(driver)
-        return
-    }
-    // 添加到通讯录
-    const  isexistAddB = await isElementPresent('android=new UiSelector().resourceId("com.tencent.mm:id/o3b")')
-    log('xxx备忘录',isexistAddB)
-    if(isexistAddB === false){
+    const  yichang = await driver.$('android=new UiSelector().className("android.widget.TextView").textContains(\"异常\")').isDisplayed()
+
+    const  bucunzai = await driver.$('android=new UiSelector().className("android.widget.TextView").textContains(\"不存在\")').isDisplayed()
+    log('异常和存在与否',yichang,bucunzai);
+    if(yichang || bucunzai){
       wxtask.status = -1 
-      wxtask.message = "不存在添加到通讯录按钮"
+      wxtask.message = '好友不存在'
       await backHome(driver)
       await waitForSecond(driver)
-      return;
+      return
     }
-    driver.$('android=new UiSelector().resourceId("com.tencent.mm:id/o3b")').click();
-    await   waitForSecond(driver);
-    await   driver.$('new UiSelector().resourceId("com.tencent.mm:id/m9y")').setValue(wxtask.bakInfo)
-    await   waitForSecond(driver);
-    const  sendbtn =  await driver.$('new UiSelector().resourceId("com.tencent.mm:id/g68")')
-    sendbtn.click()
-    wxtask.status = 1
-    wxtask.message = "添加好友成功"
-    await backHome(driver)
+    // 添加到通讯录
+    await  waitForSecond(driver)
+    const   addView = await driver.$('android=new UiSelector().className("android.widget.TextView").textContains(\"添加到\")')
+    if(addView.isDisplayed()){
+      addView.click()
+      await waitForSecond(driver)
+      await   driver.$('android=new UiSelector().className("android.widget.EditText").resourceId("com.tencent.mm:id/m9y")').setValue(wxtask['bakInfo'])
+      await   waitForSecond(driver);
+      const  sendbtn =  await driver.$('android=new UiSelector().className("android.widget.Button").text("发送")')
+      sendbtn.click()
+      await waitForSecond(driver)
+      wxtask.status = 1
+      wxtask.message = "添加好友成功"
+      await backHome(driver)
+      await waitForSecond(driver)
+    }else{
+       wxtask.status = -1
+       wxtask.message = "不存在添加按钮"
+       await backHome(driver)
+       await waitForSecond(driver)
+    }
   }catch(error){
     console.log('logerror',error)
     wxtask.status = -1
-    wxtask.message = "error"
+    const errorMessage = `${error.message}\n${error.stack}`;
+    wxtask.message = `${errorMessage}`
     await backHome(driver)
+    await waitForSecond(driver)
   }
 }
 
