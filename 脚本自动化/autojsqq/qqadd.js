@@ -1379,10 +1379,15 @@ function processAddFriend(item) {
     if (checkTimeout()) return;
     //搜索框填入QQ号
     className("android.widget.EditText").desc('搜索').desc('搜索').findOne(defaultConfig.findOneTimeOut).setText(item.qq);
-    sleepSelf(delayinteval);
+    sleepSelf(delayinteval+ 500);
     if (checkTimeout()) return;
     //点击搜索按钮
-    className("android.widget.TextView").text(`${item.qq}`).findOne(defaultConfig.findOneTimeOut).parent().click();
+    if(  className("android.widget.TextView").text(`${item.qq}`).parent().exists()){
+        className("android.widget.TextView").text(`${item.qq}`).findOne(defaultConfig.findOneTimeOut).parent().click();
+    }else{
+        updateQQItemStatus(item.index, -1, "该QQ未搜索到")
+        return;
+    }
     sleepSelf(delayinteval);
     if (checkTimeout()) return;
     log("等待我分析搜索页中.....")
