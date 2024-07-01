@@ -75,7 +75,7 @@ var defaultConfig = {
     author: 'TG:@ctqq9',
     validCode: "",
     usepwd: 'true',
-    isdebug: false,
+    isdebug: true,
     lastOperationQQ: "",
     findOneTimeOut: 5000,
     expirationDate: new Date(2024, 9, 30, 0, 0, 0),
@@ -1289,7 +1289,22 @@ function handleAddFriend(item, checkTimeout) {
         }
     }
 }
-
+function  CloseWindowPop() {
+      // 消息推送窗口检测
+      log("关闭窗口检测")
+      if( className("android.widget.Button").desc('马上开启').exists()){
+        back();
+        return;
+    }
+    if( className("android.widget.Button").textContains('马上开启').exists()){
+        back();
+        return;
+    }
+    if( className("android.widget.Button").textContains('关闭').exists()){
+        back();
+        return;
+    }
+}
 function checkExcptionTask(item){
     if( className("android.widget.Button").desc('确定').exists()){
         className("android.widget.Button").desc('确定').findOne(defaultConfig.findOneTimeOut).click();
@@ -1343,6 +1358,9 @@ function processAddFriend(item) {
     if (!returnToHomeScreen()) {
         return;
     }
+    CloseWindowPop();
+    sleepSelf(1000);
+    log('检测了问题')
     if (checkTimeout()) return;
     findTabIndex(0);
     if (className("android.widget.RelativeLayout").depth(4).clickable(true).exists()) {
@@ -1382,7 +1400,7 @@ function processAddFriend(item) {
     sleepSelf(delayinteval+ 500);
     if (checkTimeout()) return;
     //点击搜索按钮
-    if(  className("android.widget.TextView").text(`${item.qq}`).parent().exists()){
+    if(  className("android.widget.TextView").text(`${item.qq}`).exists()){
         className("android.widget.TextView").text(`${item.qq}`).findOne(defaultConfig.findOneTimeOut).parent().click();
     }else{
         updateQQItemStatus(item.index, -1, "该QQ未搜索到")
@@ -1530,11 +1548,19 @@ function findTabIndex(index) {
         log("TabWidget not found");
     }
 }
+function InputHide() {
+    if(className("android.widget.ImageView").desc("聊天设置").exists()){
+       log('找到了并点击')
+       target = className("android.widget.ImageView").desc("聊天设置").findOne(defaultConfig.findOneTimeOut).bounds();
+       click(target.left, target.top + 140);
+    }
+}
 function sendQQToComputer(lastqq, reason) {
     const sendinfo = typeof lastqq === "string" ? lastqq : lastqq.qq;
     log(`发结果到文件 ${sendinfo} ${reason},${threads.currentThread()}`);
     if (returnToHomeScreen()) {
         findTabIndex(3);
+        CloseWindowPop();
         sleepSelf(delayinteval);
         if (id("kbi").className("android.widget.TextView").text("联系人").exists()) {
             id("kbi").className("android.widget.TextView").text("联系人").findOne(defaultConfig.findOneTimeOut).parent().parent().click()
@@ -1557,13 +1583,16 @@ function sendQQToComputer(lastqq, reason) {
                 className("android.widget.FrameLayout").clickable(true).depth(4).drawingOrder(15).findOne(defaultConfig.findOneTimeOut).click();
             }
             sleep(500)
-            if (className("android.widget.EditText").idStartsWith('in').exists()) {
-                // 判断 reason 的类型并处理
-                let reasonText = typeof reason === 'object' ? JSON.stringify(reason) : reason;
-                className("android.widget.EditText").idStartsWith('in').findOne(defaultConfig.findOneTimeOut).setText(reasonText + sendinfo);
+            //这里点击下 消除键盘
+            if ( className("android.widget.TextView").text('我的电脑').exists()){
                 var  bounds =   className("android.widget.TextView").text('我的电脑').findOne(defaultConfig.findOneTimeOut).bounds();
                 click(bounds.left,bounds.bottom + 120);
-                sleepSelf(delayinteval);
+            }
+            sleepSelf(delayinteval);
+            if (className("android.widget.EditText").exists()) {
+                // 判断 reason 的类型并处理
+                let reasonText = typeof reason === 'object' ? JSON.stringify(reason) : reason;
+                className("android.widget.EditText").findOne(defaultConfig.findOneTimeOut).setText(reasonText + sendinfo);
                 if (className("android.widget.Button").text("发送").exists()) {
                     className("android.widget.Button").text("发送").findOne(defaultConfig.findOneTimeOut).click();
                     return;
