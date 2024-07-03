@@ -192,7 +192,7 @@ def perform_actions(driver, x, y):
 
 
 def judgeCanAddElement(driver, nickName):
-    wait = WebDriverWait(driver, 2)
+    wait = WebDriverWait(driver, 3)
     try:
         xparent = f'//android.widget.LinearLayout[@content-desc="{nickName}"]'
         parent_layout = wait.until(
@@ -397,7 +397,7 @@ def swipe_up(driver, itemHeight=0, duration_ms=300):
 
 
 def processNickSearchResult(driver, element, nickname):
-    wait = WebDriverWait(driver, 2)
+    wait = WebDriverWait(driver, 10)
     if element is not None:
         perform_actions(driver, element.rect["x"] + 30, element.rect["y"] + 3)
         Utils.sleepSelf(0.5)
@@ -425,7 +425,7 @@ def processNickSearchResult(driver, element, nickname):
                 driver.back()
                 return QQMemerber(nickname, 1, "", qqid)
             except Exception as e:
-                Utils.log(f"花里����的界面��选器也出问题{e}")
+                Utils.log(f"出问题{e}")
                 driver.back()
                 return None
     else:
@@ -556,7 +556,7 @@ def sanitize_filename(filename):
 
 
 def closeEXCEPTIONDialog(driver):
-    wait = WebDriverWait(driver, 2)
+    wait = WebDriverWait(driver, 3)
     try:
         selector = (
             AppiumBy.ANDROID_UIAUTOMATOR,
