@@ -16,6 +16,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.actions.pointer_input import PointerInput
 import pandas as pd
 
+
 class Utils(object):
     @staticmethod
     def getSizeWindow(driver):
@@ -23,6 +24,7 @@ class Utils(object):
         screen_width = screen_size["width"]
         screen_height = screen_size["height"]
         return screen_width, screen_height
+
     @staticmethod
     def extract_numbers_from_string(input_string):
         # 使用正则表达式查找字符串中的所有数字
@@ -98,12 +100,12 @@ class QQGroup:
             self.members.append(member)
             self.count = self.members.count
 
+
 # 初始化webDriver
 def initDriver():
     desired_caps = {
         "platformName": "Android",
         "automationName": "UiAutomator2",
-        "deviceName": "912KPPB2101192",
         "appPackage": "com.tencent.mobileqq",
         "appActivity": ".activity.SplashActivity",
         "noReset": True,
@@ -120,6 +122,7 @@ def initDriver():
         return None
     return driver
 
+
 # 进行死循环对界面进行分析
 def tagBlockMain():
     while True:
@@ -129,6 +132,8 @@ def tagBlockMain():
 def loadFileData():
     Utils.log("开始加载数据")
     return [QQGroup("", 0, "")]
+
+
 # 对列表进行滑动处理 目前按 列表的高度 50%进行滑动
 def swipcurrentNextPage(driver, source_element, itemHeight=0, duration_ms=300):
     try:
@@ -165,6 +170,7 @@ def swipcurrentNextPage(driver, source_element, itemHeight=0, duration_ms=300):
         print("元素未找到，请检查定位器。")
     except Exception as e:
         Utils.error(f"发生错误", e)
+
 
 # 点击某个位置
 def perform_actions(driver, x, y):
@@ -253,7 +259,6 @@ def collectionItemsProcess(driver, scrollerList):
                 )
             )
             currentLast = {"id": None, "name": None, "element": None}
-            # 计算这一屏第一条和最后一条的y偏移值
             if avilableListNickNames is not None:
                 if len(avilableListNickNames) > 0:
                     currentLastelement = avilableListNickNames[-1]
@@ -400,10 +405,8 @@ def processNickSearchResult(driver, element, nickname):
             Utils.log(f"该账号不可添加{nickname}")
             return None
         try:
-            selector = (
-                AppiumBy.ANDROID_UIAUTOMATOR,
-                'new UiSelector().textContains("QQ号")',
-            )
+            ui_automator_selector = 'new UiSelector().className("android.widget.AbsListView").resourceId("com.tencent.mobileqq:id/k05")'
+            selector = (AppiumBy.ANDROID_UIAUTOMATOR, ui_automator_selector)
             qq = wait.until(EC.presence_of_element_located(selector))
             qqid = Utils.extract_qq_number(qq.text)
             driver.back()
@@ -455,15 +458,15 @@ def processFileData(driver, initalData):
             )
             resultGroup.name = groupName.text
             resultGroup.count = Utils.extract_numbers_from_string(groupCount.text)
-            Utils.log(f'****************开始拉取{resultGroup}')
+            Utils.log(f"****************开始拉取{resultGroup}")
             try:
                 Utils.log(f"群组名:{resultGroup.name} 开始自动扫描群成员")
                 groupCount.click()
-                Utils.sleepSelf(2)
-                bodyList = driver.find_element(
-                    AppiumBy.ANDROID_UIAUTOMATOR,
-                    'new UiSelector().className("android.widget.AbsListView").resourceId("com.tencent.mobileqq:id/k05")',
-                )
+                selector = (
+                        AppiumBy.ANDROID_UIAUTOMATOR,
+                        'new UiSelector().resourceId("com.tencent.mobileqq:id/k05").className("android.widget.AbsListView")'
+                    )
+                bodyList = wait.until(EC.presence_of_element_located(selector))
                 Utils.log(f"开始获取群成员列表")
                 collectionItmes = collectionItemsProcess(driver, bodyList)
                 Utils.log(f"最终扫描到结果{collectionItmes}")
@@ -519,6 +522,8 @@ def writeTaskToExcel(driver, result: List[QQGroup]):
 
     Utils.log("脚本已退出")
     driver.quit()
+
+
 def dealFinishTask(driver, result: List[QQGroup]):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     Utils.log("处理结果")
