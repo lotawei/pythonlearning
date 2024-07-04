@@ -135,7 +135,7 @@ def loadFileData():
 
 
 # 对列表进行滑动处理 目前按 列表的高度 50%进行滑动
-def swipcurrentNextPage(driver, source_element, itemHeight=0, duration_ms=300):
+def swipcurrentNextPage(driver, source_element, itemHeight=0, duration_ms=10):
     try:
         # 创建并初始化PointerInput对象
         pointer_input = PointerInput("touch", "finger")
@@ -160,7 +160,7 @@ def swipcurrentNextPage(driver, source_element, itemHeight=0, duration_ms=300):
             end_y = start_y + offsety
         actions.w3c_actions.pointer_action.move_to_location(start_x, start_y)
         actions.w3c_actions.pointer_action.pointer_down()
-        actions.w3c_actions.pointer_action.pause(duration_ms / 1000)  # 转换为秒
+        # actions.w3c_actions.pointer_action.pause(duration_ms / 1000)  # 转换为秒
         actions.w3c_actions.pointer_action.move_to_location(end_x, end_y)
         actions.w3c_actions.pointer_action.release()
 
@@ -241,7 +241,7 @@ def judgeCanAddElement(driver, nickName):
 
 
 def collectionItemsProcess(driver, scrollerList):
-    wait = WebDriverWait(driver, 2)
+    wait = WebDriverWait(driver, 3)
     has_new_elements = True
     lastdisplayElement = {"id": None, "name": None, "element": None}
     Utils.log(f"列表每页的高度{scrollerList.rect}")
@@ -278,6 +278,7 @@ def collectionItemsProcess(driver, scrollerList):
                             (elementnick.id, elementnick.text, elementnick)
                             for elementnick in avilableListNickNames
                         ]
+                        Utils.log(f'最后一条数据{currentLast["name"]}')
                         for elementPair in currentPageElements:
                             if elementPair not in idsElementsBeans:
                                 Utils.log(f"发现新昵称：{elementPair[1]}")
@@ -312,8 +313,8 @@ def collectionItemsProcess(driver, scrollerList):
                                 else:
                                     Utils.log(f"{elementPair[1]}跳过无需添加")
                         lastdisplayElement = currentLast
-                        if len(currentPageShouldAddList) > 0:
-                            pageResultQQ += currentPageShouldAddList
+                        # if len(currentPageShouldAddList) > 0:
+                        #     pageResultQQ += currentPageShouldAddList
                         swipcurrentNextPage(driver, scrollerList)
                 else:
                     Utils.log(f"列表没有元素")
@@ -394,19 +395,18 @@ def swipe_up(driver, itemHeight=0, duration_ms=300):
         actions.perform()
     except Exception as e:
         print(f"发生错误：{e}")
-
-
 def processNickSearchResult(driver, element, nickname):
-    wait = WebDriverWait(driver, 10)
+    wait = WebDriverWait(driver, 3)
     if element is not None:
         perform_actions(driver, element.rect["x"] + 30, element.rect["y"] + 3)
-        Utils.sleepSelf(0.5)
         if (closeEXCEPTIONDialog(driver)) is True:
             Utils.log(f"该账号不可添加{nickname}")
             return None
         try:
-            ui_automator_selector = 'new UiSelector().className("android.widget.AbsListView").resourceId("com.tencent.mobileqq:id/k05")'
-            selector = (AppiumBy.ANDROID_UIAUTOMATOR, ui_automator_selector)
+            selector = (
+                AppiumBy.ANDROID_UIAUTOMATOR,
+                'new UiSelector().textContains("QQ号")',
+             )
             qq = wait.until(EC.presence_of_element_located(selector))
             qqid = Utils.extract_qq_number(qq.text)
             driver.back()
@@ -434,7 +434,7 @@ def processNickSearchResult(driver, element, nickname):
 
 def processFileData(driver, initalData):
     try:
-        wait = WebDriverWait(driver, 10)
+        wait = WebDriverWait(driver, 3)
         Utils.log("开始处理数据")
         result = []
         for element in initalData:
@@ -469,7 +469,9 @@ def processFileData(driver, initalData):
                 bodyList = wait.until(EC.presence_of_element_located(selector))
                 Utils.log(f"开始获取群成员列表")
                 collectionItmes = collectionItemsProcess(driver, bodyList)
-                Utils.log(f"最终扫描到结果{collectionItmes}")
+                Utils.log(f"本次结果*******************************************\n")
+                for member in collectionItmes:
+                    Utils.log(f"{member}\n")
                 resultGroup.members = collectionItmes
                 result.append(resultGroup)
                 return result
@@ -564,11 +566,12 @@ def closeEXCEPTIONDialog(driver):
         )
         close = wait.until(EC.presence_of_element_located(selector))
         close.click()
-        Utils.sleepSelf(1)
+        Utils.sleepSelf(0.3)
         driver.back()
         return True
     except Exception as e:
         Utils.log(f"无对话需要关闭")
+        Utils.sleepSelf(0.3)
         return False
 
 
@@ -579,7 +582,7 @@ def QQGrouoSolution():
     if driver is None:
         Utils.log("初始化失败")
         return
-    wait = WebDriverWait(driver, 5)
+    wait = WebDriverWait(driver, 3)
     while not isenterGroup:
         Utils.log("请按Enter键继续，或按其他键退出...")
         user_input = input()
