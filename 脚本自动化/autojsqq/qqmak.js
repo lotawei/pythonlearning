@@ -1,635 +1,359 @@
 "ui";
-
 auto.waitFor();
-
-// // // 全局数组存储数据项
-// // var globalDataItems = [];
-// // var appState = {
-// //     flag: 0
-// // };
-// // var qqState = {
-// //     flag: 0
-// // };
-
-// // // 创建UI布局
-// // ui.layout(
-// //     <vertical padding="16">
-// //         <text textSize="16sp" textColor="black" text="请输入验证信息"/>
-// //         <input id="message" text=""/>
-// //         <text textSize="16sp" textColor="black" text="请输入备注"/>
-// //         <input id="remarks" text=""/>
-// //         <text textSize="16sp" textColor="black" text="资料页延迟操作（4000ms = 4s）"/>
-// //         <input id="delay_q" text="4000"/>
-// //         <text textSize="16sp" textColor="black" text="空间延迟操作（8000ms = 8s）"/>
-// //         <input id="delay_z" text="8000"/>
-
-// //         <button id="start" style="Widget.AppCompat.Button.Colored" text="开始添加"/>
-// //         <button id="selectDir" text="选择文件"/>
-// //         <text id="selectedFile" text="未选择文件" textSize="18sp" textColor="#ff0000" padding="8dp"/>
-// //         <list id="fileList">
-// //             <text textSize="16sp" textColor="#000000" text="{{this.qq}}"/>
-// //         </list>
-// //     </vertical>
-// // );
-
-// // // 监听按钮点击事件
-// // // ui.selectDir.on("click", function() {
-// // //     // 读取选择的目录下的文件列表
-// // //     let filesList = listFiles("/sdcard");
-// // //     // 检查是否有文件
-// // //     if (filesList.length > 0) {
-// // //         // 弹出单选对话框让用户选择文件
-// // //         dialogs.singleChoice("选择文件", filesList, -1)
-// // //         .then(index => {
-// // //             if (index >= 0) {
-// // //                 // 获取选择的文件的完整路径
-// // //                 let selectedFilePath = files.join("/sdcard", filesList[index]);
-// // //                 // 更新选择的文件显示
-// // //                 ui.selectedFile.setText("选中的文件: " + selectedFilePath);
-// // //                 // 读取文件信息
-// // //                 try {
-// // //                     let file = open(selectedFilePath, 'r');
-// // //                     let content = file.read();
-// // //                     file.close();
-// // //                     // 假设文件内容是以换行符分隔的
-// // //                     let dataItems = content.split('\n').filter(item => item.trim().length > 0);
-// // //                     // 将数据项添加到全局列表
-// // //                     globalDataItems = dataItems;
-// // //                     // 更新UI列表
-// // //                     ui.fileList.setDataSource(dataItems.map(qq => ({ qq })));
-// // //                 } catch (e) {
-// // //                     ui.run(() => {
-// // //                         toast("读取文件失败：" + e.message);
-// // //                     });
-// // //                 }
-// // //             } else {
-// // //                 ui.selectedFile.setText("未选择文件");
-// // //             }
-// // //         });
-// // //     } else {
-// // //         ui.run(() => {
-// // //             toast("该目录下没有文件");
-// // //         });
-// // //     }
-// // // });
-// // ui.selectDir.on("click", function() {
-// //     // 先定义路径选项
-// //     let paths = ["/sdcard", "/mnt/sdcard", "输入自定义路径"];
-// //     // 弹出路径选择对话框
-// //     dialogs.select("选择路径", paths)
-// //     .then(index => {
-// //         let selectedPath;
-// //         if (index === 2) {
-// //             // 用户选择输入自定义路径
-// //             dialogs.rawInput("请输入自定义路径", "")
-// //             .then(inputPath => {
-// //                 if (inputPath) {
-// //                     processFiles(inputPath);  // 处理用户输入的路径
-// //                 } else {
-// //                     toast("未输入路径");
-// //                 }
-// //             });
-// //         } else if (index >= 0) {
-// //             // 用户选择了列表中的路径
-// //             selectedPath = paths[index];
-// //             processFiles(selectedPath);  // 处理选择的路径
-// //         } else {
-// //             toast("未选择路径");
-// //         }
-// //     });
-// // });
-
-// // function processFiles(path) {
-// //     // 读取选择的目录下的文件列表
-// //     let filesList = listFiles(path);
-// //     // 检查是否有文件
-// //     if (filesList.length > 0) {
-// //         // 弹出单选对话框让用户选择文件
-// //         dialogs.singleChoice("选择文件", filesList, -1)
-// //         .then(index => {
-// //             if (index >= 0) {
-// //                 // 获取选择的文件的完整路径
-// //                 let selectedFilePath = files.join(path, filesList[index]);
-// //                 // 更新选择的文件显示
-// //                 ui.selectedFile.setText("选中的文件: " + selectedFilePath);
-// //                 // 读取文件信息
-// //                 try {
-// //                     let file = open(selectedFilePath, 'r');
-// //                     let content = file.read();
-// //                     file.close();
-// //                     // 假设文件内容是以换行符分隔的
-// //                     let dataItems = content.split('\n').filter(item => item.trim().length > 0);
-// //                     // 将数据项添加到全局列表
-// //                     globalDataItems = dataItems;
-// //                     // 更新UI列表
-// //                     ui.fileList.setDataSource(dataItems.map(qq => ({ qq })));
-// //                 } catch (e) {
-// //                     ui.run(() => {
-// //                         toast("读取文件失败：" + e.message);
-// //                     });
-// //                 }
-// //             } else {
-// //                 ui.selectedFile.setText("未选择文件");
-// //             }
-// //         });
-// //     } else {
-// //         ui.run(() => {
-// //             toast("该目录下没有文件");
-// //         });
-// //     }
-// // }
-
-
-// // // 定义函数，列出指定目录下的所有文件
-// // function listFiles(dir) {
-// //     try {
-// //         let fileList = files.listDir(dir, function(name) {
-// //             return files.isFile(files.join(dir, name));
-// //         });
-// //         return fileList;
-// //     } catch (e) {
-// //         ui.run(() => {
-// //             toast("无法读取目录，请确保路径正确并有足够权限");
-// //         });
-// //         return [];
-// //     }
-// // }
-
-// // // 监听按钮点击事件:开始添加
-// // ui.start.on("click", function() {
-// //     // 获取信息和备注
-// //     var message = ui.message.getText().toString();
-// //     var remarks = ui.remarks.getText().toString();
-
-// //     // 延迟操作
-// //     var delay_q = parseInt(ui.delay_q.getText().toString());
-// //     var delay_z = parseInt(ui.delay_z.getText().toString());
-
-// //     // 数据校验
-// //     if (message.trim() === "" || remarks.trim() === "") {
-// //         ui.run(() => {
-// //             toast("请输入留言和备注");
-// //         });
-// //         return;
-// //     }
-// //     if (globalDataItems.length === 0) {
-// //         ui.run(() => {
-// //             toast("请选择文件");
-// //         });
-// //         return;
-// //     }
-
-// //     // 在新线程中处理，避免UI线程阻塞
-// //     threads.start(function() {
-// //         run(message, remarks, delay_q, delay_z);  // 调用新定义的 run 函数
-// //     });
-// // });
-
-// // // 加QQ脚本主函数
-// // function run(message, remarks, delay_q, delay_z) {
-// //     launchQQ();
-// //     for (var i = 0; i < globalDataItems.length && appState.flag != 2; i++) {
-// //         log(globalDataItems[i]);
-
-// //         if (appState.flag == 2) {
-// //             // 重置状态，终止程序
-// //             appState.flag = 0;
-// //             break;
-// //         }
-
-// //         // 搜索QQ
-// //         searchQQ(globalDataItems[i], delay_q, function() {
-// //             log("searchQQ 结束");
-// //         });
-// //         if (qqState.flag == 1) {
-// //             // 重置状态，终止本次添加
-// //             qqState.flag = 0;
-// //             continue;
-// //         }
-
-// //         try {
-// //             // textContains(globalDataItems[i]).waitFor();
-// //             // print("找到文本：" + globalDataItems[i]);
-// //             addAsFriend(message, remarks, delay_q, delay_z, function() {
-// //                 log("addAsFriend 结束");
-// //             });
-// //             print("添加成功：" + globalDataItems[i]);
-
-// //             // 返回搜索页面
-// //             try {
-// //                 returnToSearchPage();
-// //             } catch (e) {
-// //                 log("返回搜索页面时发生错误：" + e.message);
-// //             }
-            
-// //         } catch (e) {
-// //             log("等待超时，未找到文本：" + globalDataItems[i]);
-// //         }
-// //     }
-// //     ui.run(() => {
-// //         appState.flag = 0;
-// //         print("操作完成！");
-// //         toast("操作完成！");
-// //     });
-// // }
-
-
-// // // 打开QQ好友添加页面
-// // function launchQQ() {
-// //     launchApp("QQ");
-// //     sleep(2000);
-// //     while(!id("ba3").findOne().click());
-// //     sleep(2000);
-// //     while(!click('加好友'));
-// // }
-
-// // // 搜索点击资料页
-// // function searchQQ(qq, delay_q, callback){
-// //     log("函数 searchQQ 被调用");
-// //     sleep(delay_q);
-// //     textContains('QQ号/').waitFor();
-// //     textContains('QQ号/').click();
-// //     sleep(delay_q);
-// //     setText(qq);
-// //     sleep(delay_q);
-// //     id("tce").waitFor();
-// //     id("tce").findOne().click();
-// //     sleep(delay_q);
-// //     if(desc('添加按钮').exists()){
-// //         var x = desc("添加按钮").findOne().parent().parent().bounds().centerX();
-// //         var y = desc("添加按钮").findOne().parent().parent().bounds().centerY();
-// //         if (!textContains("加好友").exists()){
-// //             click(x,y);
-// //         }
-// //         sleep(delay_q);
-// //         // log("searchQQ 结束");
-// //         if (typeof callback === 'function') {
-// //             callback();  // 执行回调表示完成
-// //         }
-// //     } else {
-// //         while(!click('取消'));
-// //         // 返回，终止本次循环，进入下一个循环
-// //         qqState.flag = 1;
-// //         if (typeof callback === 'function') {
-// //             callback();  // 执行回调表示完成
-// //         }
-// //     }
-    
-// // }
-
-// // // 添加QQ好友
-// // function addAsFriend(message, remarks, delay_q, delay_z, callback){
-// //     print("函数 addAsFriend 被调用");
-// //     try {
-// //         if (appState.flag === 0) {
-// //             print("检查 flag 状态: 0");
-// //             if (addProfile(message, remarks, delay_q)) {
-// //                 print("addProfile 执行成功");
-// //             } else {
-// //                 appState.flag = 1;
-// //                 print('更改 flag 为:', appState.flag);
-// //             }
-// //         }
-// //         if (appState.flag === 1) {
-// //             print("检查 flag 状态: 1");
-// //             if (!addQzone(message, remarks, delay_z)) {
-// //                 appState.flag = 2;
-// //                 ui.run(() => {
-// //                     toast("频繁添加！");
-// //                 });
-// //                 print('更改 flag 为:', appState.flag);
-// //             } else {
-// //                 print("addQzone 执行成功");
-// //             }
-// //         }
-// //         if (typeof callback === 'function') {
-// //             callback();
-// //         }
-// //     } catch (e) {
-// //         ui.run(() => {
-// //             print("操作失败: " + e.message);
-// //             toast("操作失败: " + e.message);
-// //         });
-// //         if (typeof callback === 'function') {
-// //             callback();
-// //         }
-// //     }
-// // }
-
-	
-// // // 加资料
-// // function addProfile(message, remarks, delay_q) {
-// //     textContains("加好友").waitFor();
-// //     if(click("加好友")){
-// //         sleep(delay_q);
-// //         setText(0, message);
-// //         setText(1, remarks);
-// //         sleep(delay_q);
-// //         while(!click("发送") );
-// //         sleep(delay_q);
-// //         if(click("加好友")){
-// //             sleep(delay_q);
-// //             // 判断之前的备注信息是否还存在
-// //             // 根据属性获取第二个输入框
-// //             var inputBoxes = className("android.widget.EditText").filter(function(widget) {
-// //                 return widget.text() !== ""; // 或者使用其他属性比如hint
-// //             }).find();
-// //             if (inputBoxes.size() > 1) {
-// //                 var secondInputBox = inputBoxes.get(1);
-// //                 var text = secondInputBox.text();
-// //             } else {
-// //                 console.log("未找到足够的输入框");
-// //             }
-// //             if(text == remarks){
-// //                 back();
-// //                 return true;
-// //             }else{
-// //                 print("备注信息不一致")
-// //                 back();
-// //                 return false;
-// //             }
-// //         }
-// //     }else{
-// //         print("出错了")
-// //         return true;
-// //     }
-// // }
-
-// // // 加空间
-// // function addQzone(message, remarks, delay_z) {
-// //     try {
-// //         id("root_layout").descContains('的QQ空间').findOne(10000).click();  // 增加超时时间
-// //     } catch (e) {  // 在catch后面添加参数e
-// //         swipe(device.width / 2, device.height * 3 / 4, device.width / 2, device.height / 4, 1000);
-// //         id("root_layout").descContains('的QQ空间').findOne(10000).click();  // 重试点击
-// //     }
-
-// //     textContains("加好友").waitFor();
-// //     if(click("加好友")){
-// //         sleep(delay_z);
-// //         setText(0, message);
-// //         setText(1, remarks);
-// //         sleep(delay_z);
-// //         while(!click("发送") );
-// //         sleep(delay_z);
-
-// //         if(textContains('的QQ空间').exists()){
-// //             try {
-// //                 id("root_layout").descContains('的QQ空间').findOne(10000).click();  // 增加超时时间
-// //             } catch (e) {  // 在catch后面添加参数e
-// //                 swipe(device.width / 2, device.height * 3 / 4, device.width / 2, device.height / 4, 1000);
-// //                 id("root_layout").descContains('的QQ空间').findOne(10000).click();  // 重试点击
-// //             }    
-// //         }
-
-// //         textContains("加好友").waitFor();
-        
-// //         if(click("加好友")){
-// //             sleep(delay_z);
-// //             // 判断之前的备注信息是否还存在
-// //             // 根据属性获取第二个输入框
-// //             var inputBoxes = className("android.widget.EditText").filter(function(widget) {
-// //                 return widget.text() !== ""; // 或者使用其他属性比如hint
-// //             }).find();
-// //             if (inputBoxes.size() > 1) {
-// //                 var secondInputBox = inputBoxes.get(1);
-// //                 var text = secondInputBox.text();
-// //             } else {
-// //                 console.log("未找到足够的输入框");
-// //             }
-// //             if(text == remarks){
-// //                 while(!back());
-// //                 return true;
-// //             }else{
-// //                 print("备注信息不一致")
-// //                 while(!back());
-// //                 return false;
-// //             }
-// //         }
-// //     }else{
-// //         print("出错了")
-// //         return true;
-// //     }
-// // }
-
-// // // 返回搜索页
-// // function returnToSearchPage() {
-// //     print("函数 returnToSearchPage 被调用")
-// //     if (desc("返回").exists()){
-// //         var x = desc("返回").findOne().bounds().centerX();
-// //         var y = desc("返回").findOne().bounds().centerY();
-// //         print(x,y);
-// //         while(!click(x,y));
-// //     }else{
-// //         print('没找到返回按钮，强制返回');
-// //         while(!back());
-// //     }
-// //     print('返回/点击取消')
-// //     // log(textContains('取消').waitFor());
-// //     if(textContains('取消').exists()){
-// //         while(!click('取消'));
-// //     }else{
-// //         print('没找到取消按钮，强制返回');
-// //         while(!back());
-// //         while(!back());
-// //     }
-    
-// //     sleep(2000);
-// //     print('下一个！')
-// // }
-
-// "ui";
-
-// ui.layout(
-//     <frame>
-//         <vertical>
-//             <appbar>
-//                 <toolbar id="toolbar" title="Todo" />
-//             </appbar>
-//             <list id="todoList">
-//                 <card w="*" h="70" margin="10 5" cardCornerRadius="2dp"
-//                     cardElevation="1dp" foreground="?selectableItemBackground">
-//                     <horizontal gravity="center_vertical">
-//                         <View bg="{{this.color}}" h="*" w="10" />
-//                         <vertical padding="10 8" h="auto" w="0" layout_weight="1">
-//                             <text id="title" text="{{this.title}}" textColor="#222222" textSize="16sp" maxLines="1" />
-//                             <text text="{{this.summary}}" textColor="#999999" textSize="14sp" maxLines="1" />
-//                         </vertical>
-//                         <checkbox id="done" marginLeft="4" marginRight="6" checked="{{this.done}}" />
-//                     </horizontal>
-
-//                 </card>
-//             </list>
-//         </vertical>
-//         <fab id="add" w="auto" h="auto" src="@drawable/ic_add_black_48dp"
-//             margin="16" layout_gravity="bottom|right" tint="#ffffff" />
-//     </frame>
-// );
-
-// var materialColors = ["#e91e63", "#ab47bc", "#5c6bc0", "#7e57c2", "##2196f3", "#00bcd4",
-//     "#26a69a", "#4caf50", "#8bc34a", "#ffeb3b", "#ffa726", "#78909c", "#8d6e63"];
-
-// var storage = storages.create("todoList");
-// //从storage获取todo列表
-// var todoList = storage.get("items", [
-//     {
-//         title: "写操作系统作业",
-//         summary: "明天第1～2节",
-//         color: "#f44336",
-//         done: false
-//     },
-//     {
-//         title: "给ui模式增加若干Bug",
-//         summary: "无限期",
-//         color: "#ff5722",
-//         done: false
-//     },
-//     {
-//         title: "发布Auto.js 5.0.0正式版",
-//         summary: "2019年1月",
-//         color: "#4caf50",
-//         done: false
-//     },
-//     {
-//         title: "完成毕业设计和论文",
-//         summary: "2019年4月",
-//         color: "#2196f3",
-//         done: false
-//     }
-// ]);;
-
-// ui.todoList.setDataSource(todoList);
-
-// ui.todoList.on("item_bind", function (itemView, itemHolder) {
-//     //绑定勾选框事件
-//     itemView.done.on("check", function (checked) {
-//         let item = itemHolder.item;
-//         item.done = checked;
-//         let paint = itemView.title.paint;
-//         //设置或取消中划线效果
-//         if (checked) {
-//             paint.flags |= Paint.STRIKE_THRU_TEXT_FLAG;
-//         } else {
-//             paint.flags &= ~Paint.STRIKE_THRU_TEXT_FLAG;
-//         }
-//         itemView.title.invalidate();
-//     });
-// });
-
-// ui.todoList.on("item_click", function (item, i, itemView, listView) {
-//     itemView.done.checked = !itemView.done.checked;
-// });
-
-// ui.todoList.on("item_long_click", function (e, item, i, itemView, listView) {
-//     confirm("确定要删除" + item.title + "吗？")
-//         .then(ok => {
-//             if (ok) {
-//                 todoList.splice(i, 1);
-//             }
-//         });
-//     e.consumed = true;
-// });
-
-// //当离开本界面时保存todoList
-// ui.emitter.on("pause", () => {
-//     storage.put("items", todoList);
-// });
-
-// ui.add.on("click", () => {
-//     dialogs.rawInput("请输入标题")
-//         .then(title => {
-//             if (!title) {
-//                 return;
-//             }
-//             dialogs.rawInput("请输入期限", "明天")
-//                 .then(summary => {
-//                     todoList.push({
-//                         title: title,
-//                         summary: summary,
-//                         color: materialColors[random(0, materialColors.length - 1)]
-//                     });
-//                 });
-//         })
-// });
-
- 
-function box() {
-    $ui.layout(
-        <vertical>
-        <input id="输入框"w="*" />
-        </vertical>
-    );
+importClass(android.widget.Switch);
+setScreenMetrics(1440,2560);
+devicePeixl = {
+    width: 1440,
+    height: 2560
 }
- 
-box()
+// 初始化日志变量
+var logMessages = [];
 
-// 获取屏幕宽高
-var screenWidth = device.width;
-var screenHeight = device.height;
-
-// 设置悬浮窗的宽高
-var windowWidth = screenWidth * 0.3;
-var windowHeight = screenHeight * 0.4;
-
-// 创建悬浮窗
-var window = floaty.window(
-    <frame>
-        <vertical>
-        <button id="action" text="开始" w="*" h="*"/>
-        <button id="adas" text="按暂停" w="*" h="*"/>
+// 创建 UI 界面
+$ui.layout(
+    <vertical padding="16">
+        <text textSize="20sp" textColor="#000000" text="开关控制与日志显示"/>
+        <horizontal>
+            <text text="功能开关:" textSize="18sp" />
+            <Switch id="toggleSwitch" checked="false"/>
+        </horizontal>
+        <button id="startButton" text="开始"/>
+        <text id="statusText" text="当前状态：关闭" textSize="16sp" textColor="#FF0000"/>
+        <vertical padding="16">
+            <text text="日志:" textSize="18sp" textColor="#000000"/>
+            <scroll>
+                <vertical id="logContainer"/>
+            </scroll>
         </vertical>
-       
-    </frame>
+    </vertical>
 );
 
-// 设置悬浮窗的初始位置
-window.setPosition((screenWidth - windowWidth) / 2, (screenHeight - windowHeight) / 2);
-window.setSize(windowWidth, windowHeight);
 
-// 记录悬浮窗是否正在移动
-var moving = false;
-var x, y, windowX, windowY;
 
-// 注册触摸监听器
-window.action.setOnTouchListener(function(view, event){
-    switch(event.getAction()){
-        case event.ACTION_DOWN:
-            // 按下时记录当前悬浮窗的坐标和手指按下的坐标
-            moving = true;
-            x = event.getRawX();
-            y = event.getRawY();
-            windowX = window.getX();
-            windowY = window.getY();
-            return true;
-        case event.ACTION_MOVE:
-            // 移动时更新悬浮窗的位置
-            if (moving) {
-                window.setPosition(windowX + (event.getRawX() - x), windowY + (event.getRawY() - y));
+/**
+ * 贝塞尔曲线
+ * @param {坐标点} ScreenPoint 
+ * @param {偏移量} Offset 
+ */
+function bezier_curves(ScreenPoint, Offset) {
+    cx = 3.0 * (ScreenPoint[1].x - ScreenPoint[0].x);
+    bx = 3.0 * (ScreenPoint[2].x - ScreenPoint[1].x) - cx;
+    ax = ScreenPoint[3].x - ScreenPoint[0].x - cx - bx;
+    cy = 3.0 * (ScreenPoint[1].y - ScreenPoint[0].y);
+    by = 3.0 * (ScreenPoint[2].y - ScreenPoint[1].y) - cy;
+    ay = ScreenPoint[3].y - ScreenPoint[0].y - cy - by;
+    tSquared =Offset * Offset;
+    tCubed = tSquared * Offset;
+    result = {
+        "x": 0,
+        "y": 0
+    };
+    result.x = (ax * tCubed) + (bx * tSquared) + (cx * Offset) + ScreenPoint[0].x;
+    result.y = (ay * tCubed) + (by * tSquared) + (cy * Offset) + ScreenPoint[0].y;
+    return result;
+};
+
+function sml_move(qx, qy, zx, zy, time) {
+    var xxy = [time];
+    var point = [];
+    var dx0 = {
+        "x": qx,
+        "y": qy
+    };
+    var dx1 = {
+        "x": random(qx - 100, qx + 100),
+        "y": random(qy, qy + 50)
+    };
+    var dx2 = {
+        "x": random(zx - 100, zx + 100),
+        "y": random(zy, zy + 50),
+    };
+    var dx3 = {
+        "x": zx,
+        "y": zy
+    };
+    for (var i = 0; i < 4; i++) {
+        eval("point.push(dx" + i + ")");
+    };
+    for (let i = 0; i < 1; i += 0.08) {
+        let newPoint=bezier_curves(point, i);
+        xxyy = [parseInt(newPoint.x), parseInt(newPoint.y)]
+        xxy.push(xxyy);
+    }
+    gesture.apply(null, xxy);
+};
+
+function findTabIndex(index){
+    if (index < 0 || index > 4) {
+        log("Index out of bounds");
+        return;
+    }
+    
+    log(device.width, device.height);
+    
+    if (className("android.widget.TabWidget").exists()) {
+        const tabs = className("android.widget.TabWidget").findOne(2000).bounds();
+        // 正确的x坐标计算
+        const x = device.width / 5 * index + device.width / 10;
+        const y = device.height - tabs.height() / 2.0;
+        
+        log(x, y, tabs);
+        click(x, y);
+    } else {
+        log("TabWidget not found");
+    }
+}
+function  testQQAdd(){
+    className("android.widget.TextView").text('加好友').findOne().click();
+}
+var  athread = null;
+var  index = 0;
+var  arrrp = [1,3,2,34,123,12,3];
+var  isprocessing = false;
+var  taskTimeout = 120 * 1000;
+function dotask(index){
+    if(athread !== null && athread.isAlive && isprocessing){
+        isprocessing = true;
+        const iten = `do task+${index}`;
+        log('默认执行任务中',iten);
+        ui.run(() =>{
+            ui.statusText.setText(iten);
+        })
+        sleep(2000);
+        log('执行任务中')
+    }
+    else{
+        log('dofinish task')
+    }
+}   
+ui.startButton.on('click', function() {
+    confirm('关闭脚本').then(function(res) {
+        if (res) {
+            if (athread !== null && athread.isAlive) {
+                isprocessing = false;
+                try {
+                    athread.interrupt();
+                    ui.run(() => {
+                        toastLog(`执行这个任务被中断了${arrrp[index]}`)
+                    });
+                } catch (error) {
+                    log('线程中断时出现错误:', error);
+                }
             }
-            return true;
-        case event.ACTION_UP:
-            // 抬起时停止移动
-            moving = false;
-            return true;
-    }
-    return true;
+        }
+    }).catch(function(error) {
+        log('Promise被拒绝:', error);
+    });
 });
+function scrollDown() {
+    // 模拟从屏幕中间向上滑动
+    swipe(device.width / 2, device.height / 2, device.width / 2, device.height / 4, 500);
+}
+var imm = context.getSystemService(android.content.Context.INPUT_METHOD_SERVICE);
+imm.toggleSoftInput(0, android.view.inputmethod.InputMethodManager.HIDE_NOT_ALWAYS);
+function gestScorllerUp() {
+    gesture(1000, [device.width / 2, device.height], [device.width / 2,0], [0, 0])
+    sleep(1000);
+}
 
-// 按钮点击事件
-window.action.click(function(){
-    switch(window.action.text()){
-        case "开始":
-            window.action.setText("停止");
-            toast("开始");
-            break;
-        case "停止":
-            window.action.setText("关闭");
-            toast("停止");
-            break;
-        case "关闭":
-            window.action.setText("开始");
-            toast("关闭");
-            window.close();
-            break;
+function processAddFriend(item) {
+    
+    const startTime = new Date().getTime();
+    // 封装检查超时的函数
+    function checkTimeout() {
+        if (new Date().getTime() - startTime > 1000) {
+            log('已经超时本次任务两分钟了');
+            return true;
+        }
+        log('任务未超时用时',(new Date().getTime() - startTime) / 1000)
+        return false;
     }
+
+    className('android.widget.Button').desc('addFriend').findOne(3000);
+    if(checkTimeout()) return;
+    log('阻塞中')
+}
+events.observeToast();
+events.onToast(function(toast){
+    // if(toast.getText().includes("异常提示")){
+    //     handleException();
+    // }
+    log('检测',toast.getText())
 });
+function checkAndHandleDialog() {
+    log('检查中检查')
+    ui.run(() => {
+    var dialog = className("android.app.Dialog").findOne(1000);
+    if (dialog) {
+        console.log("检测到dialog弹窗");
+        // 尝试点击关闭按钮
+        var closeButton = dialog.findOne(text("关闭"));
+        if (closeButton) {
+            closeButton.click();
+        } else {
+            // 尝试点击取消按钮或其他可能存在的按钮
+            var cancelButton = dialog.findOne(text("取消"));
+            if (cancelButton) {
+                cancelButton.click();
+            } else {
+                // 如果没有找到关闭或取消按钮，尝试按返回键
+                back();
+            }
+        }
+    }});
+}
+threads.start(() => {
+    // setInterval(checkAndHandleDialog, 3000);
+})
+
+// 定时检查弹窗
+function startScript(){
+    // UtilLog(1,2,3,[123123])
+    athread = threads.start(() =>{
+        launch("com.tencent.mobileqq");
+        sleep(5000);
+        //com.tencent.mobileqq.profilecard.activity.FriendProfileCardActivity
+        log(currentActivity())
+        //我的电脑
+        if (className("android.widget.TextView").text("设备").clickable(true).exists()) {
+            className("android.widget.TextView").text("设备").findOne(2000).click();
+            sleepSelf(delayinteval);
+            log('找到我的电脑');
+        }
+        //测试下点击
+        //测试搜索框
+        // if(  className("android.widget.TextView").text(`1111111`).exists()){
+        //     log('奇葩的搜索按钮')
+        //     //  TODO: 0.9.075
+        //     var  searchBounds =  className("android.widget.TextView").text(`1111111`).findOne(3000).bounds();
+        //     log('搜索位置',searchBounds)
+        //     click(searchBounds.left + 3, searchBounds.top + 2);
+        //     // TODO: 0.9.6
+        //     // className("android.widget.TextView").text(`${item.qq}`).findOne(defaultConfig.findOneTimeOut).parent().click();
+        // }else{
+        //     updateQQItemStatus(item.index, -1, "该QQ未搜索到")
+        //     return;
+        // }
+        // var  resultBounds = null;
+        // if (className("android.view.ViewGroup").clickable(true).drawingOrder(1).indexInParent(0).exists()) {
+        //     resultBounds = className("android.view.ViewGroup").clickable(true).drawingOrder(1).indexInParent(0).findOne(defaultConfig.findOneTimeOut).bounds();
+        // }
+        // log('搜索位置',resultBounds)
+        // if( className("android.widget.Button").desc('确定').exists()){
+        //     className("android.widget.Button").desc('确定').findOne(2000).click();
+        //     // return;
+        // }
+        // log('不走')
+        // sleep(2000);
+        // if (className('android.widget.Button').desc('搜索框').exists()) {
+        //     className('android.widget.Button').desc('搜索框').findOne(2000).click();
+        //     sleep(2000);
+        // }
+        // //首次可能没找到搜索框那么点击下中间双击会出现
+        // else {
+        //     const addiconbounds  = className("android.widget.ImageView").desc('快捷入口').clickable(true).findOne(2000).bounds()
+        //     click(device.width/2.0,addiconbounds.centerY());
+        //     sleep(100);
+        //     click(device.width/2.0,addiconbounds.centerY());
+        //     log('先让搜索出来')
+        // }
+        // sleep(2000);
+        // if (className("android.view.ViewGroup").depth(9).desc('搜索').drawingOrder(10).clickable(true).exists()){
+        //     className("android.view.ViewGroup").depth(9).desc('搜索').drawingOrder(10).clickable(true).findOne(2000).click();
+        //     log('走特殊的搜索入口进去')
+        // }
+        // if (className('android.widget.Button').desc('搜索框').exists()) {
+        //     className('android.widget.Button').desc('搜索框').findOne(3000).click();
+        // }else{
+        //     //找不到的话尝试double click
+        //    var  qqxiu = className("android.widget.Button").desc("超级QQ秀").drawingOrder(9).findOne(2000).bounds();
+        //    log(qqxiu.centerX(),qqxiu.centerY());
+        //    const  x = qqxiu.centerX() - 120;
+        //    const  y = qqxiu.centerY();
+        //    sleep(300);
+        //    click(x,y);
+        //    sleep(100)
+        //    click(x,y);
+        //    sleep(1000);
+        //    if (className('android.widget.Button').desc('搜索框').exists()) {
+        //     className('android.widget.Button').desc('搜索框').findOne(3000).click();
+        //    }
+        // }
+        // if (className("android.widget.RelativeLayout").clickable(true).exists()) {
+        //     className("android.widget.RelativeLayout").depth(4).clickable(true).findOne(defaultConfig.findOneTimeOut).click()
+        // }
+
+        // if (className("android.widget.FrameLayout").clickable(true).depth(10).exists()) {
+        //     className("android.widget.FrameLayout").clickable(true).depth(10).findOne(2000).click();
+        // }
+        // if (className("android.widget.FrameLayout").clickable(true).depth(6).exists()) {
+        //     className("android.widget.FrameLayout").clickable(true).depth(6).findOne(2000).click();
+        // }
+        // sleep(2000);
+
+        // if (className("android.widget.EditText").exists()) {
+        //     // 判断 reason 的类型并处理
+        //     className("android.widget.EditText").findOne(2000).setText("12312321");
+        //     sleep(2000);
+        //     var  bounds =   className("android.widget.TextView").text('我的电脑').findOne(2000).bounds();
+        //     click(bounds.left,bounds.bottom + 120);
+        //     sleep(1000)
+        //     if (className("android.widget.Button").text("发送").exists()) {
+        //         // id("send_btn").findOne().click()
+        //         className("android.widget.Button").text("发送").findOne(2000).click();
+        //     }
+        //     if(id('send_btn').exists()){
+        //         id('send_btn').findOne(2000).click();
+        //     }
+        // } else {
+        //     log("找不到输入框，无法发送信息", currentActivity());
+        // }
+    });
+    // athread =   threads.start(() =>{
+    //     sleep(2000);
+    //     launch("com.tencent.mobileqq");
+    //     sleep(2000);
+    //     while(index < arrrp.length  ){
+    //         log('执行任务中')
+    //         dotask(arrrp[arrrp[index]]);
+    //         index+=1;
+    //         sleep(1000);
+    //     }
+    //     var startTime = new Date().getTime(); 
+    //     while (athread.isAlive()) {
+    //         log('主线程正在等待子线程完成...');
+    //         sleep(1000);  // 每隔2秒检查一次子线程状态
+    //         var currentTime = new Date().getTime();
+    //         if (currentTime - startTime > taskTimeout) {
+    //             log('超时，正在中断子线程...');
+    //             athread.interrupt(); // 中断子线程
+    //             break; // 退出循环
+    //         }
+    //     }
+    //     log('脚本执行结束');
+    //     // if (id('input').exists()) {
+    //     //     if (id("send_btn").exists()){
+    //     //         id("send_btn").findOne(2000)
+    //     //     }else {
+    //     //         log("找不到发送按钮");
+
+    //     //     }
+    //     // }
+    //     // gesture(1000, [device.width/2, device.height/2], [device.width/2, device.height/2 - 300], [0, 0])
+    //     // // className("androidx.recyclerview.widget.RecyclerView").scrollable(true).findOne().scrollForward()
+    //     // findTabIndex(3);
+    //     // testQQAdd();
+    //     // var sendBtn = id("send_btn").findOne(2000).click();
+    //     // log(sendBtn);
+    //     // id('sss').findOne(2000).exists() //crash  八错
+        
+    //       // app.startActivity({
+    // //     action: "android.intent.action.VIEW",
+    // //     data: "mqq://card/show_pslcard?src_type=internal&version=1&uin=" + item.qq,
+    // //     packageName: "com.tencent.mobileqq",
+    // // }); 
+    // });
+}
+startScript();
+
+
