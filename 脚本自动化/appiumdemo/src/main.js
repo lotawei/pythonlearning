@@ -2,7 +2,6 @@ const {remote} = require('webdriverio');
 const fsPromises = require('fs').promises;
 const path = require('path');
 const { log, dir } = require('console');
-
 const capabilities = {
   "appium:platformName": "Android",
   "appium:automationName": "UiAutomator2",

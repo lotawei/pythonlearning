@@ -279,40 +279,41 @@ def collectionItemsProcess(driver, scrollerList):
                             for elementnick in avilableListNickNames
                         ]
                         Utils.log(f'最后一条数据{currentLast["name"]}')
-                        for elementPair in currentPageElements:
-                            if elementPair not in idsElementsBeans:
-                                Utils.log(f"发现新昵称：{elementPair[1]}")
-                                canAddElement = judgeCanAddElement(
-                                    driver, elementPair[1]
-                                )
-                                if canAddElement is not None:
-                                    idsElementsBeans.append(elementPair)
-                                    Utils.log(
-                                        f"需要操作的***************{elementPair[1]}可以添加************"
-                                    )
-                                    mermerBer = processNickSearchResult(
-                                        driver, canAddElement, elementPair[1]
-                                    )
-                                    if mermerBer is not None:
-                                        # 这里需要判断不在当前列表中 还需要不能在上一页添加过的列表中
-                                        if not any(
-                                            existing_mermerBer.qqid == mermerBer.qqid
-                                            for existing_mermerBer in currentPageShouldAddList
-                                        ) and not any(
-                                            existing_mermerBer.qqid == mermerBer.qqid
-                                            for existing_mermerBer in pageResultQQ
-                                        ):
-                                            currentPageShouldAddList.append(mermerBer)
-                                            Utils.log(
-                                                f"添加成功，QQID：{mermerBer.qqid} {mermerBer.name}"
-                                            )
-                                        else:
-                                            Utils.log(f"重复添加")
-                                    else:
-                                        pass
-                                else:
-                                    Utils.log(f"{elementPair[1]}跳过无需添加")
                         lastdisplayElement = currentLast
+                        # for elementPair in currentPageElements:
+                        #     if elementPair not in idsElementsBeans:
+                        #         Utils.log(f"发现新昵称：{elementPair[1]}")
+                        #         canAddElement = judgeCanAddElement(
+                        #             driver, elementPair[1]
+                        #         )
+                        #         if canAddElement is not None:
+                        #             idsElementsBeans.append(elementPair)
+                        #             Utils.log(
+                        #                 f"需要操作的***************{elementPair[1]}可以添加************"
+                        #             )
+                        #             mermerBer = processNickSearchResult(
+                        #                 driver, canAddElement, elementPair[1]
+                        #             )
+                        #             if mermerBer is not None:
+                        #                 # 这里需要判断不在当前列表中 还需要不能在上一页添加过的列表中
+                        #                 if not any(
+                        #                     existing_mermerBer.qqid == mermerBer.qqid
+                        #                     for existing_mermerBer in currentPageShouldAddList
+                        #                 ) and not any(
+                        #                     existing_mermerBer.qqid == mermerBer.qqid
+                        #                     for existing_mermerBer in pageResultQQ
+                        #                 ):
+                        #                     currentPageShouldAddList.append(mermerBer)
+                        #                     Utils.log(
+                        #                         f"添加成功，QQID：{mermerBer.qqid} {mermerBer.name}"
+                        #                     )
+                        #                 else:
+                        #                     Utils.log(f"重复添加")
+                        #             else:
+                        #                 pass
+                        #         else:
+                        #             Utils.log(f"{elementPair[1]}跳过无需添加")
+                       
                         # if len(currentPageShouldAddList) > 0:
                         #     pageResultQQ += currentPageShouldAddList
                         swipcurrentNextPage(driver, scrollerList)

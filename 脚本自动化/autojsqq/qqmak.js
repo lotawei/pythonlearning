@@ -203,7 +203,7 @@ function checkAndHandleDialog() {
     }});
 }
 threads.start(() => {
-    setInterval(checkAndHandleDialog, 3000);
+    // setInterval(checkAndHandleDialog, 3000);
 })
 
 // 定时检查弹窗
@@ -211,9 +211,34 @@ function startScript(){
     // UtilLog(1,2,3,[123123])
     athread = threads.start(() =>{
         launch("com.tencent.mobileqq");
-        sleep(2000);
+        sleep(5000);
         //com.tencent.mobileqq.profilecard.activity.FriendProfileCardActivity
         log(currentActivity())
+        //我的电脑
+        if (className("android.widget.TextView").text("设备").clickable(true).exists()) {
+            className("android.widget.TextView").text("设备").findOne(2000).click();
+            sleepSelf(delayinteval);
+            log('找到我的电脑');
+        }
+        //测试下点击
+        //测试搜索框
+        // if(  className("android.widget.TextView").text(`1111111`).exists()){
+        //     log('奇葩的搜索按钮')
+        //     //  TODO: 0.9.075
+        //     var  searchBounds =  className("android.widget.TextView").text(`1111111`).findOne(3000).bounds();
+        //     log('搜索位置',searchBounds)
+        //     click(searchBounds.left + 3, searchBounds.top + 2);
+        //     // TODO: 0.9.6
+        //     // className("android.widget.TextView").text(`${item.qq}`).findOne(defaultConfig.findOneTimeOut).parent().click();
+        // }else{
+        //     updateQQItemStatus(item.index, -1, "该QQ未搜索到")
+        //     return;
+        // }
+        // var  resultBounds = null;
+        // if (className("android.view.ViewGroup").clickable(true).drawingOrder(1).indexInParent(0).exists()) {
+        //     resultBounds = className("android.view.ViewGroup").clickable(true).drawingOrder(1).indexInParent(0).findOne(defaultConfig.findOneTimeOut).bounds();
+        // }
+        // log('搜索位置',resultBounds)
         // if( className("android.widget.Button").desc('确定').exists()){
         //     className("android.widget.Button").desc('确定').findOne(2000).click();
         //     // return;

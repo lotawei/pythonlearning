@@ -1057,7 +1057,7 @@ function addFriendPageOperation(item, checkTimeout) {
             sleepSelf(delayinteval);
             if (checkTimeout()) return;
         } else {
-            updateQQItemStatus(item.index, -1, "输入备注过程中未输入")
+            updateQQItemStatus(item.index, -1, "备注已备注过已发送过验证")
             return;
         }
         className("android.widget.Button").text("发送").findOne(defaultConfig.findOneTimeOut).click()
@@ -1165,6 +1165,9 @@ function findRecycleMenuBarItemUser() {
     if (className('android.widget.FrameLayout').desc("用户按钮").exists()) {
         return className('android.widget.FrameLayout').desc("用户按钮").findOne(defaultConfig.findOneTimeOut).bounds();
     }
+    if (className('android.widget.TextView').text("用户").exists()) {
+        return className('android.widget.TextView').text("用户").findOne(defaultConfig.findOneTimeOut).bounds();
+    }
     return null;
 }
 
@@ -1173,10 +1176,11 @@ function findRecycleMenuBarItemUser() {
  * @returns {Rect | null} The bounds of the found item, or null if not found.
  */
 function findRecycleItem() {
-    if (className('android.widget.FrameLayout').depth(3).drawingOrder(2).indexInParent(0).exists()) {
-        return className('android.widget.FrameLayout').depth(3).drawingOrder(2).indexInParent(0).findOne(defaultConfig.findOneTimeOut).bounds();
+    var  resultBounds = null;
+    if (className('android.view.ViewGroup').clickable(true).drawingOrder(1).indexInParent(0).exists()) {
+        resultBounds = className('android.view.ViewGroup').clickable(true).drawingOrder(1).indexInParent(0).findOne(defaultConfig.findOneTimeOut).bounds();
     }
-    return null;
+    return resultBounds;
 }
 function tagActivityLog() {
     log("tagActivityLog", currentActivity())
@@ -1360,7 +1364,6 @@ function processAddFriend(item) {
     }
     CloseWindowPop();
     sleepSelf(1000);
-    log('检测了问题')
     if (checkTimeout()) return;
     findTabIndex(0);
     if (className("android.widget.RelativeLayout").depth(4).clickable(true).exists()) {
@@ -1368,9 +1371,9 @@ function processAddFriend(item) {
     }
     sleepSelf(delayinteval);
     log("我查搜索框");
-    if (className('android.widget.Button').depth(9).desc('搜索框').exists()) {
+    if (className('android.widget.Button').desc('搜索框').exists()) {
         log("我查搜索框存在");
-        className('android.widget.Button').depth(9).desc('搜索框').findOne(defaultConfig.findOneTimeOut).click();
+        className('android.widget.Button').desc('搜索框').findOne(defaultConfig.findOneTimeOut).click();
         if (checkTimeout()) return;
     }
     //首次可能没找到搜索框那么点击下中间双击会出现
@@ -1382,8 +1385,8 @@ function processAddFriend(item) {
         log('先让搜索出来')
     }
     sleepSelf(delayinteval)
-    if (className('android.widget.Button').depth(9).desc('搜索框').exists()) {
-        className('android.widget.Button').depth(9).desc('搜索框').findOne(defaultConfig.findOneTimeOut).click();
+    if (className('android.widget.Button').desc('搜索框').exists()) {
+        className('android.widget.Button').desc('搜索框').findOne(defaultConfig.findOneTimeOut).click();
         sleepSelf(delayinteval);
         if (checkTimeout()) return;
     }
@@ -1400,13 +1403,20 @@ function processAddFriend(item) {
     sleepSelf(delayinteval+ 500);
     if (checkTimeout()) return;
     //点击搜索按钮
-    if(  className("android.widget.TextView").text(`${item.qq}`).exists()){
-        className("android.widget.TextView").text(`${item.qq}`).findOne(defaultConfig.findOneTimeOut).parent().click();
+    if(className("android.widget.TextView").text(`${item.qq}`).exists()){
+        log('奇葩的搜索按钮')
+        //  TODO: 0.9.075
+        var  searchBounds =  className("android.widget.TextView").text(`${item.qq}`).findOne(defaultConfig.findOneTimeOut).bounds();
+        log('搜索位置',searchBounds)
+        click(searchBounds.left + 3, searchBounds.top + 2);
+        sleepSelf(delayinteval);
+        // TODO: 0.9.6
+        // className("android.widget.TextView").text(`${item.qq}`).findOne(defaultConfig.findOneTimeOut).parent().click();
     }else{
         updateQQItemStatus(item.index, -1, "该QQ未搜索到")
         return;
     }
-    sleepSelf(delayinteval);
+    
     if (checkTimeout()) return;
     log("等待我分析搜索页中.....")
     const itemBounds = findRecycleMenuBarItemUser();
@@ -1446,13 +1456,19 @@ function resetConfig() {
     defaultConfig.enterByAutoScheme = false;
     scheduleTaskAtSpecificTime(defaultConfig.schemeTaskByTimeDay,schemeTaskByTimeDay)
 }
-
+function sureSplashScreen(){
+    if (className("android.widget.Button").descStartsWith('取消').exists()){
+        className("android.widget.Button").descStartsWith('取消').findOne(defaultConfig.findOneTimeOut).click();
+        sleepSelf(delayinteval);
+    }
+}
 
 function returnToHomeScreen() {
     const maxAttempts = 6;
     const targetActivity = "com.tencent.mobileqq.activity.SplashActivity";
     if (currentActivity() === targetActivity) {
         log("已经在主页: " + targetActivity);
+        sureSplashScreen();
         return true;
     }
     for (let attempts = 0; attempts < maxAttempts; attempts++) {
@@ -1463,6 +1479,7 @@ function returnToHomeScreen() {
            // 再次检查是否已经在主页
            if (currentActivity() === targetActivity) {
             log("成功返回主页: " + targetActivity);
+            sureSplashScreen();
             return true;
         }
         // 发送返回键并等待
@@ -1471,6 +1488,7 @@ function returnToHomeScreen() {
         // 再次检查是否已经在主页
         if (currentActivity() === targetActivity) {
             log("成功返回主页: " + targetActivity);
+            sureSplashScreen();
             return true;
         }
     }
@@ -1563,6 +1581,7 @@ function sendQQToComputer(lastqq, reason) {
         CloseWindowPop();
         sleepSelf(delayinteval);
         if (id("kbi").className("android.widget.TextView").text("联系人").exists()) {
+            log('kibi already')
             id("kbi").className("android.widget.TextView").text("联系人").findOne(defaultConfig.findOneTimeOut).parent().parent().click()
         }
         sleepSelf(delayinteval);
@@ -1571,8 +1590,8 @@ function sendQQToComputer(lastqq, reason) {
             sleepSelf(delayinteval);
             log('找到我的电脑');
             sleep(500)
-            if (className("android.widget.FrameLayout").clickable(true).depth(10).exists()) {
-                className("android.widget.FrameLayout").clickable(true).depth(10).findOne(defaultConfig.findOneTimeOut).click();
+            if (className("android.widget.FrameLayout").idStartsWith('os9').exists()) {
+                className("android.widget.FrameLayout").idStartsWith('os9').findOne(defaultConfig.findOneTimeOut).click();
             }
             sleepSelf(delayinteval);
             if (className("android.widget.FrameLayout").clickable(true).depth(6).exists()) {
