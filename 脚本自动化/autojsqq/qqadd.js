@@ -75,7 +75,7 @@ var defaultConfig = {
     author: 'TG:@ctqq9',
     validCode: "",
     usepwd: 'true',
-    isdebug: false,
+    isdebug: true,
     lastOperationQQ: "",
     findOneTimeOut: 5000,
     expirationDate: new Date(2024, 9, 30, 0, 0, 0),
@@ -1392,8 +1392,9 @@ function processAddFriend(item) {
     }
     if (checkTimeout()) return;
     sleepSelf(delayinteval);
-    if (className("android.view.ViewGroup").depth(9).desc('搜索').drawingOrder(10).clickable(true).exists()){
-        className("android.view.ViewGroup").depth(9).desc('搜索').drawingOrder(10).clickable(true).findOne(defaultConfig.findOneTimeOut).click();
+    //某些时候这个找不到需要用这种
+    if (className("android.view.ViewGroup").desc('搜索').clickable(true).exists()){
+        className("android.view.ViewGroup").desc('搜索').clickable(true).findOne(defaultConfig.findOneTimeOut).click();
         sleepSelf(delayinteval);
         log('走QQ特殊的搜索入口')
     }
