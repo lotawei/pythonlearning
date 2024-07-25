@@ -1253,7 +1253,7 @@ function handleAddFriend(item, checkTimeout) {
                 toastLog("二次资料页诸事不顺触发风控不易加人😭");
                 loggerTrace('existQQ', { "qq": item.qq, "time": getFormattedTimestamp(new Date()) });
                 sleepSelf(delayinteval);
-                if (defaultConfig.qqzoneMissCount == 2){
+                if (defaultConfig.qqzoneMissCount == 1){
                     updateQQItemStatus(item.index, -2, `${item.qq}选手在尝试从QQ空间资料加人就备注丢失的情况`)
                     defaultConfig.normalFinish = false;
                     closeApp({"qq":item.qq},"前面已有备注丢失后进入QQ空间加人遭遇备注不上", false);
