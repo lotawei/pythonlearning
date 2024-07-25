@@ -86,6 +86,8 @@ var defaultConfig = {
     normalFinish: true, //触发风控或者不正常需要终止的关闭
     schemeTaskByTimeDay: getTomorrowMorningSevenOClock(),
     enterByAutoScheme: false,
+    // 备注丢失情况下
+    qqzoneMissCount: 0,
 }
 function getTomorrowMorningSevenOClock() {
     // 获取当前时间的Date对象
@@ -1247,16 +1249,21 @@ function handleAddFriend(item, checkTimeout) {
             }
             sleepSelf(delayinteval);
             if (checkTimeout()) return;
-
             if (className("android.widget.EditText").text('输入备注').exists() === true) {
                 toastLog("二次资料页诸事不顺触发风控不易加人😭");
                 loggerTrace('existQQ', { "qq": item.qq, "time": getFormattedTimestamp(new Date()) });
                 sleepSelf(delayinteval);
-                updateQQItemStatus(item.index, -2, `${item.qq}选手在尝试从QQ空间资料加人就备注丢失的情况`)
-                defaultConfig.normalFinish = false;
-                closeApp({"qq":item.qq},"前面已有备注丢失后进入QQ空间加人遭遇备注不上", false);
+                if (defaultConfig.qqzoneMissCount == 2){
+                    updateQQItemStatus(item.index, -2, `${item.qq}选手在尝试从QQ空间资料加人就备注丢失的情况`)
+                    defaultConfig.normalFinish = false;
+                    closeApp({"qq":item.qq},"前面已有备注丢失后进入QQ空间加人遭遇备注不上", false);
+                }else{
+                    updateQQItemStatus(item.index, -1, `${item.qq}QQ空间直接丢失了备注`)
+                    defaultConfig.qqzoneMissCount += 1;
+                }
                 return;
             } else {
+                defaultConfig.qqzoneMissCount = 0;
                 defaultConfig.byQQZoneCount += 1;
                 updateQQItemStatus(item.index, 1, "QQ空间加人成功")
             }
@@ -1452,6 +1459,7 @@ function resetConfig() {
     defaultConfig.flagQQZonePorcessAdd = false;
     defaultConfig.userForceClose = false;
     defaultConfig.normalFinish = true;
+    defaultConfig.qqzoneMissCount = 0;
     //定时相关的
     defaultConfig.schemeTaskByTimeDay = getTomorrowMorningSevenOClock()
     defaultConfig.enterByAutoScheme = false;
