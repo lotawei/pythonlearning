@@ -1111,8 +1111,10 @@ function addFriendPageOperation(item, checkTimeout) {
                 checkExcptionTask(item);
                 sleepSelf(delayinteval);
                 if (checkTimeout()) return;
+                loggerTrace('-----准备进入QQ空间加人-----')
                 //再次尝试加好友
                 if (retryAddFriendByQQZone(item, checkTimeout)) {
+                    loggerTrace('操作过QQ空间加人')
                     sleepSelf(delayinteval);
                     if (className("android.widget.TextView").text("加好友").exists()) {
                         className("android.widget.TextView").text("加好友").findOne(defaultConfig.findOneTimeOut).click()
@@ -1138,11 +1140,13 @@ function addFriendPageOperation(item, checkTimeout) {
                         return;
                     }
                 } else {
+                    loggerTrace('操作过QQ空间加人但是失败')
                     updateQQItemStatus(item.index, -1, "尝试从QQ空间加人遭遇异常")
                     loggerTrace(item.qq, { "code": "false", "message": "异常情况", "data": JSON.stringify({ "qq": item.qq }) })
                     return;
                 }
-            } else {
+            } 
+            else {
                 defaultConfig.byredirectQQCount += 1;
                 updateQQItemStatus(item.index, 1, "直接加人成功")
                 loggerTrace(item.qq, { "code": "success", "message": "直接加人成功", "data": JSON.stringify({ "qq": item.qq }) })
@@ -1215,6 +1219,7 @@ function updateQQItemStatus(index, status, statusMessage) {
     }
 }
 function handleAddFriend(item, checkTimeout) {
+    log('直接加QQ空间？ ',defaultConfig.flagQQZonePorcessAdd, defaultConfig.flagQQZonePorcessAdd === true ? '是':'否')
     if (defaultConfig.flagQQZonePorcessAdd) {
         log('===============================已经有过QQ触发备注丢失的情况================================');
         log(`${item.qq}本次任务触发下}`);
@@ -1253,15 +1258,15 @@ function handleAddFriend(item, checkTimeout) {
                 toastLog("二次资料页诸事不顺触发风控不易加人😭");
                 loggerTrace('existQQ', { "qq": item.qq, "time": getFormattedTimestamp(new Date()) });
                 sleepSelf(delayinteval);
-                if (defaultConfig.qqzoneMissCount == 1){
+                if (defaultConfig.qqzoneMissCount >= 1){
                     updateQQItemStatus(item.index, -2, `${item.qq}选手在尝试从QQ空间资料加人就备注丢失的情况`)
                     defaultConfig.normalFinish = false;
                     closeApp({"qq":item.qq},"前面已有备注丢失后进入QQ空间加人遭遇备注不上", false);
+                    return;
                 }else{
                     updateQQItemStatus(item.index, -1, `${item.qq}QQ空间直接丢失了备注`)
                     defaultConfig.qqzoneMissCount += 1;
                 }
-                return;
             } else {
                 defaultConfig.qqzoneMissCount = 0;
                 defaultConfig.byQQZoneCount += 1;
