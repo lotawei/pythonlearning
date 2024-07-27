@@ -1128,10 +1128,15 @@ function addFriendPageOperation(item, checkTimeout) {
                     if (checkTimeout()) return;
                     if (className("android.widget.EditText").text('输入备注').exists() === true) {
                         loggerTrace('existQQ', { "qq": item.qq, "time": getFormattedTimestamp(new Date()) })
-                        updateQQItemStatus(item.index, -2, "二次确认QQ空间资料加人未备注上")
-                        defaultConfig.normalFinish = false;
-                        closeApp({"qq":item.qq},'QQ空间资料二次加人触发备注丢失', false);
-                        return;
+                        if (defaultConfig.qqzoneMissCount >= 1){
+                            updateQQItemStatus(item.index, -2, `${item.qq}QQ空间资料二次加人触发备注丢失`)
+                            defaultConfig.normalFinish = false;
+                            closeApp({"qq":item.qq},"QQ空间资料二次加人触发备注丢失", false);
+                            return;
+                        }else{
+                            updateQQItemStatus(item.index, -1, `${item.qq}QQ空间直接丢失了备注`)
+                            defaultConfig.qqzoneMissCount += 1;
+                        }
                     } else {
                         defaultConfig.flagQQZonePorcessAdd = true;
                         defaultConfig.byQQZoneCount += 1;
