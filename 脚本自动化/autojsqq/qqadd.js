@@ -1111,10 +1111,10 @@ function addFriendPageOperation(item, checkTimeout) {
                 checkExcptionTask(item);
                 sleepSelf(delayinteval);
                 if (checkTimeout()) return;
-                loggerTrace('-----准备进入QQ空间加人-----')
+                log('-----准备进入QQ空间加人-----')
                 //再次尝试加好友
                 if (retryAddFriendByQQZone(item, checkTimeout)) {
-                    loggerTrace('操作过QQ空间加人')
+                    log('操作过QQ空间加人')
                     sleepSelf(delayinteval);
                     if (className("android.widget.TextView").text("加好友").exists()) {
                         className("android.widget.TextView").text("加好友").findOne(defaultConfig.findOneTimeOut).click()
@@ -1127,13 +1127,14 @@ function addFriendPageOperation(item, checkTimeout) {
                     sleepSelf(delayinteval);
                     if (checkTimeout()) return;
                     if (className("android.widget.EditText").text('输入备注').exists() === true) {
-                        loggerTrace('existQQ', { "qq": item.qq, "time": getFormattedTimestamp(new Date()) })
+                        loggerTrace('existQQ', { "qq": item.qq, "time": getFormattedTimestamp(new Date())})
                         if (defaultConfig.qqzoneMissCount >= 1){
                             updateQQItemStatus(item.index, -2, `${item.qq}QQ空间资料二次加人触发备注丢失`)
                             defaultConfig.normalFinish = false;
                             closeApp({"qq":item.qq},"QQ空间资料二次加人触发备注丢失", false);
                             return;
                         }else{
+                            defaultConfig.flagQQZonePorcessAdd = true;
                             updateQQItemStatus(item.index, -1, `${item.qq}QQ空间直接丢失了备注`)
                             defaultConfig.qqzoneMissCount += 1;
                         }
@@ -1145,7 +1146,7 @@ function addFriendPageOperation(item, checkTimeout) {
                         return;
                     }
                 } else {
-                    loggerTrace('操作过QQ空间加人但是失败')
+                    log('操作过QQ空间加人但是失败')
                     updateQQItemStatus(item.index, -1, "尝试从QQ空间加人遭遇异常")
                     loggerTrace(item.qq, { "code": "false", "message": "异常情况", "data": JSON.stringify({ "qq": item.qq }) })
                     return;
@@ -1269,10 +1270,12 @@ function handleAddFriend(item, checkTimeout) {
                     closeApp({"qq":item.qq},"前面已有备注丢失后进入QQ空间加人遭遇备注不上", false);
                     return;
                 }else{
+                    defaultConfig.flagQQZonePorcessAdd = true
                     updateQQItemStatus(item.index, -1, `${item.qq}QQ空间直接丢失了备注`)
                     defaultConfig.qqzoneMissCount += 1;
                 }
             } else {
+                defaultConfig.flagQQZonePorcessAdd = true
                 defaultConfig.qqzoneMissCount = 0;
                 defaultConfig.byQQZoneCount += 1;
                 updateQQItemStatus(item.index, 1, "QQ空间加人成功")
@@ -1440,7 +1443,7 @@ function processAddFriend(item) {
     const itemBounds = findRecycleMenuBarItemUser();
     log('================================cool================================', itemBounds)
     click(itemBounds.left, itemBounds.top + 3)
-    sleepSelf(delayinteval + 2000);
+    sleepSelf(delayinteval + 1000);
     if (checkTimeout()) return;
     // 点击用户第一行的bounds 
     const userInfo = findRecycleItem();
