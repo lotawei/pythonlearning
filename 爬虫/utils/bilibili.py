@@ -5,104 +5,312 @@ import requests
 import os
 from lxml import etree
 import re
+import json
+from typing import Dict, List, Optional
+from system_utils import SystemUtils
+import time
 
-def videoDownload1(url_):
-    # 设置用户代理,cookie
-    headers_ = {
+class BilibiliDownloader:
+    def __init__(self):
+        self.base_headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
-        'Cookie': "buvid3=7014DDC0-BF1E-B121-F5A5-F10753C840B423630infoc; i-wanna-go-back=-1; _uuid=49BF2138-1E10F-D5F5-10898-D8311651B53927883infoc; FEED_LIVE_VERSION=V8; DedeUserID=171300042; DedeUserID__ckMd5=c65bec3211413192; CURRENT_FNVAL=4048; rpdid=|(J|)J~m~llk0J'uYm|)~klRl; header_theme_version=CLOSE; hit-new-style-dyn=1; hit-dyn-v2=1; is-2022-channel=1; fingerprint=fe5c7462625770aa2abce449a7c01fd2; buvid_fp_plain=undefined; b_nut=1691207170; b_ut=5; buvid_fp=fe5c7462625770aa2abce449a7c01fd2; LIVE_BUVID=AUTO4016915564967297; buvid4=1AE73807-AEA0-7078-DA57-7F9FE5C3D6F896987-023080912-A0g5nInZwV3VmJJT68FJxw%3D%3D; home_feed_column=5; SESSDATA=fc1266d3%2C1708653865%2C29c08%2A81-i-T9HQrucvpCVcPwSwXl5LmjTyduIzF9veu0KS9i2IwXK_xkcqlt1XQyxJ3sG-9HMSwLwAAKgA; bili_jct=068bc0a79f3fa7aa1a030e478dbf6d4b; sid=5yvjlnfi; browser_resolution=1920-971; bili_ticket=eyJhbGciOiJFUzM4NCIsImtpZCI6ImVjMDIiLCJ0eXAiOiJKV1QifQ.eyJleHAiOjE2OTMzNjY1MTcsImlhdCI6MTY5MzEwNzMxNywicGx0IjotMX0.I1Yfp8S9UIkU4S0G5vtBJfslPtgY7QLCj1dx9WQpyRmxKpZoA1qB5UYXNW4KBSZFGljMm7F1lbGXSGco7F79JZJ2sZNBvH9QiSVlmipzAJKaucIoFh6s3m1jpqjLp10r; bili_ticket_expires=1693366517; bp_video_offset_171300042=834376858445283367; b_lsid=1021245DB_18A3567E5C2; CURRENT_QUALITY=80; PVID=2"
-    }
+            'Cookie': "buvid3=7014DDC0-BF1E-B121-F5A5-F10753C840B423630infoc; i-wanna-go-back=-1; _uuid=49BF2138-1E10F-D5F5-10898-D8311651B53927883infoc; FEED_LIVE_VERSION=V8; DedeUserID=171300042; DedeUserID__ckMd5=c65bec3211413192; CURRENT_FNVAL=4048"
+        }
+        
+        # 设置默认下载路径为应用程序目录下的 downloads 文件夹
+        self.download_base_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'downloads')
+        # 确保下载目录存在
+        if not os.path.exists(self.download_base_path):
+            os.makedirs(self.download_base_path)
+            
+        # 检测 FFmpeg 路径
+        self.ffmpeg_path = f'"{SystemUtils.get_ffmpeg_path()}"'
+        if not self.ffmpeg_path:
+            raise RuntimeError(SystemUtils.check_ffmpeg_installation())
 
-    # 发送请求,得到响应对象
-    response_ = requests.get(url_, headers=headers_)
+    def _get_video_info(self, url: str) -> tuple:
+        """获取视频信息，返回标题和视频/音频URL"""
+        try:
+            response = requests.get(url, headers=self.base_headers)
+            if response.status_code != 200:
+                raise Exception(f"请求失败，状态码: {response.status_code}")
+                
+            html_obj = etree.HTML(response.text)
+            if html_obj is None:
+                raise Exception("页面解析失败")
+            
+            # 获取视频标题
+            title_elements = html_obj.xpath('//title/text()')
+            if not title_elements:
+                raise Exception("无法获取视频标题")
+            title = self._clean_title(title_elements[0])
+            
+            # 获取视频和音频URL
+            scripts = html_obj.xpath('//script[contains(text(),"window.__playinfo__")]/text()')
+            if not scripts:
+                raise Exception("无法获取视频信息")
+            
+            url_list_str = scripts[0]
+            video_urls = re.findall(r'"video":\[{"id":\d+,"baseUrl":"(.*?)"', url_list_str)
+            audio_urls = re.findall(r'"audio":\[{"id":\d+,"baseUrl":"(.*?)"', url_list_str)
+            
+            if not video_urls or not audio_urls:
+                raise Exception("无法解析视频/音频URL")
+                
+            return title, video_urls[0], audio_urls[0]
+        except Exception as e:
+            raise Exception(f"获取视频信息失败: {str(e)}")
 
-    str_data = response_.text  # 视频主页的html代码,类型是字符串
+    def _clean_title(self, title: str) -> str:
+        """清理视频标题中的特殊字符"""
+        title = re.findall(r'(.*?)_哔哩哔哩', title)[0]
+        for char in ['/', ' ', '&', ':', '?', '*', '<', '>', '|', '"']:
+            title = title.replace(char, '')
+        return title
 
-    # 使用xpath解析html代码,,得到想要的url
-    html_obj = etree.HTML(str_data)  # 转换格式类型
+    def _download_media(self, url: str, headers: Dict, is_video: bool = True) -> bytes:
+        """下载视频或音频内容"""
+        try:
+            response = requests.get(url, headers=headers, stream=True)
+            if response.status_code != 200:
+                raise Exception(f"下载失败，状态码: {response.status_code}")
+            return response.content
+        except Exception as e:
+            raise Exception(f"{'视频' if is_video else '音频'}下载失败: {str(e)}")
 
-    # 获取视频的名称
-    res_ = html_obj.xpath('//title/text()')[0]
-    # 视频名称的获取
-    title_ = re.findall(r'(.*?)_哔哩哔哩', res_)[0]
-    # 影响视频合成的特殊字符的处理，目前就遇到过这三个，实际上很有可能不止这三个，遇到了就用同样的方法处理就好了
-    title_ = title_.replace('/', '')
-    title_ = title_.replace(' ', '')
-    title_ = title_.replace('&', '')
-    title_ = title_.replace(':', '')
+    def _create_folder(self, folder_path: str) -> None:
+        """创建下载文件夹"""
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
 
-    # 使用xpath语法获取数据,取到数据为列表,索引[0]取值取出里面的字符串,即包含视频音频文件的url字符串
-    url_list_str = html_obj.xpath('//script[contains(text(),"window.__playinfo__")]/text()')[0]
+    def _combine_video_audio(self, video_path: str, audio_path: str, output_path: str) -> None:
+        """合并视频和音频"""
+        # 使用引号包裹文件路径，并转义特殊字符
+        video_path = f'"{video_path}"'
+        audio_path = f'"{audio_path}"'
+        output_path = f'"{output_path}"'
+        command = f'{self.ffmpeg_path} -i {audio_path} -i {video_path} -c copy {output_path} -loglevel quiet'
+        print(f"执行合并命令: {command}")
+        result = os.system(command)
+        print(f"合并命令执行结果: {result}")
 
-    # 纯视频的url
-    video_url = re.findall(r'"video":\[{"id":\d+,"baseUrl":"(.*?)"', url_list_str)[0]
+    def _extract_audio(self, video_path: str, audio_output: str) -> None:
+        """从视频中提取音频"""
+        # 使用引号包裹文件路径，并转义特殊字符
+        video_path = f'"{video_path}"'
+        audio_output = f'"{audio_output}"'
+        command = f'{self.ffmpeg_path} -i {video_path} -vn {audio_output}'
+        print(f"执行音频提取命令: {command}")
+        result = os.system(command)
+        print(f"音频提取命令执行结果: {result}")
 
-    # 纯音频的url
-    audio_url = re.findall(r'"audio":\[{"id":\d+,"baseUrl":"(.*?)"', url_list_str)[0]
+    def download_single_video(self, url: str) -> None:
+        """下载单个视频"""
+        try:
+            # 获取视频信息
+            title, video_url, audio_url = self._get_video_info(url)
+            
+            # 设置下载headers
+            download_headers = {
+                'User-Agent': self.base_headers['User-Agent'],
+                'Referer': url
+            }
 
-    # 设置跳转字段的headers
-    headers_ = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36',
-        'Referer': url_
-    }
+            # 下载视频和音频
+            temp_video_path = f'{title}!.mp4'
+            temp_audio_path = f'{title}!.mp3'
+            
+            video_content = self._download_media(video_url, download_headers)
+            audio_content = self._download_media(audio_url, download_headers)
 
-    # 获取纯视频的数据
-    response_video = requests.get(video_url, headers=headers_, stream=True)
-    bytes_video = response_video.content
-    # 获取纯音频的数据
-    response_audio = requests.get(audio_url, headers=headers_, stream=True)
-    bytes_audio = response_audio.content
+            # 保存临时文件
+            with open(temp_video_path, 'wb') as f:
+                f.write(video_content)
+            with open(temp_audio_path, 'wb') as f:
+                f.write(audio_content)
 
-    # 获取文件大小, 单位为KB
-    video_size = int(int(response_video.headers['content-length']) / 1024)
-    audio_size = int(int(response_audio.headers['content-length']) / 1024)
+            # 创建输出文件夹
+            folder_path = os.path.join(self.download_base_path, title)
+            self._create_folder(folder_path)
 
-    # 保存纯视频的文件
-    title_1 = title_ + '!'  # 名称进行修改,避免重名
-    title_1 = title_1.replace(':', '_')
-    
-    with open(f'{title_1}.mp4', 'wb') as f:
-        f.write(bytes_video)
-        # print(f'{title_1}纯视频文件下载完毕...,大小为:{video_size}KB, {int(video_size/1024)}MB')
+            # 合并视频和音频
+            output_video = os.path.join(folder_path, f'{title}.mp4')
+            output_audio = os.path.join(folder_path, f'{title}.mp3')
+            
+            self._combine_video_audio(temp_video_path, temp_audio_path, output_video)
+            self._extract_audio(output_video, output_audio)
 
-    with open(f'{title_1}.mp3', 'wb') as f:
-        f.write(bytes_audio)
-        # print(f'{title_1}纯音频文件下载完毕...,大小为:{audio_size}KB, {int(audio_size/1024)}MB')
+            # 清理临时文件
+            os.remove(temp_video_path)
+            os.remove(temp_audio_path)
 
-        # 利用第三方工具ffmpeg 合成视频, 需要执行终端命令
-    ffmpeg_path = r"/opt/homebrew/bin/ffmpeg"
-    # os.system(f'{ffmpeg_path} -i {title_1}.mp3 -i {title_1}.mp4 -c copy .\video\{title_}.mp4 -loglevel quiet')
+            print(f'{title} 下载完成')
+            
+        except Exception as e:
+            print(f'下载失败: {str(e)}')
 
+    def download_playlist(self, playlist_url: str) -> None:
+        """下载整个播放列表"""
+        try:
+            # 提取用户ID和列表ID
+            uid = re.search(r'space.bilibili.com/(\d+)', playlist_url).group(1)
+            list_id = re.search(r'lists/(\d+)', playlist_url).group(1)
+            
+            # 获取播放列表数据
+            api_url = f'https://api.bilibili.com/x/space/fav/season/list?season_id={list_id}&pn=1&ps=20&order=mtime'
+            response = requests.get(api_url, headers=self.base_headers)
+            data = response.json()
+            
+            if data['code'] == 0 and 'data' in data:
+                videos = data['data']['medias']
+                for video in videos:
+                    video_url = f'https://www.bilibili.com/video/{video["bvid"]}'
+                    print(f"开始下载: {video['title']}")
+                    self.download_single_video(video_url)
+            
+        except Exception as e:
+            print(f'获取播放列表失败: {str(e)}')
 
-    folder_path = f"/Users/work/Documents/GitHub/pythonlearning/爬虫/utils/download/{title_}"  # 替换为你想要创建的文件夹路径
+    def get_playlist_info(self, playlist_url: str) -> Dict:
+        """获取播放列表的详细信息，包括标题、标签和视频列表"""
+        try:
+            uid = re.search(r'space.bilibili.com/(\d+)', playlist_url).group(1)
+            list_id = re.search(r'lists/(\d+)', playlist_url).group(1)
+            
+            # 获取播放列表数据
+            api_url = f'https://api.bilibili.com/x/space/fav/season/list?season_id={list_id}&pn=1&ps=100&order=mtime'
+            response = requests.get(api_url, headers=self.base_headers)
+            data = response.json()
+            
+            if data['code'] == 0 and 'data' in data:
+                videos_data = data['data']['medias']
+                
+                # 提取所有视频的标签
+                all_tags = set()
+                videos_info = []
+                
+                for video in videos_data:
+                    # 提取视频信息
+                    video_info = {
+                        'title': video['title'],
+                        'bvid': video['bvid'],
+                        'duration': video['duration'],
+                        'description': video.get('desc', ''),
+                        'tags': [],
+                        'url': f'https://www.bilibili.com/video/{video["bvid"]}'
+                    }
+                    
+                    # 提取标签（如果有的话）
+                    if 'tags' in video:
+                        video_info['tags'] = [tag['tag_name'] for tag in video['tags']]
+                        all_tags.update(video_info['tags'])
+                    
+                    videos_info.append(video_info)
+                
+                return {
+                    'success': True,
+                    'playlist_title': data['data'].get('title', '未命名播放列表'),
+                    'video_count': len(videos_info),
+                    'all_tags': list(all_tags),
+                    'videos': videos_info
+                }
+            
+            return {
+                'success': False,
+                'error': '获取播放列表数据失败'
+            }
+            
+        except Exception as e:
+            return {
+                'success': False,
+                'error': str(e)
+            }
 
-    if not os.path.exists(folder_path):
-        os.mkdir(folder_path)
-        # print(f"The folder '{folder_path}' already exists.")
+    def download_selected_videos(self, video_urls: List[str]) -> None:
+        """下载选定的视频"""
+        for url in video_urls:
+            try:
+                print(f"开始下载: {url}")
+                self.download_single_video(url)
+            except Exception as e:
+                print(f'下载失败 {url}: {str(e)}')
 
+    def download_video(self, url: str, title: str) -> None:
+        """下载单个视频，使用指定的标题"""
+        try:
+            print(f"开始下载视频: {url}")
+            print(f"保存标题: {title}")
+            
+            # 更新headers添加更多必要的字段
+            self.base_headers.update({
+                'Referer': 'https://www.bilibili.com',
+                'Accept': '*/*',
+                'Origin': 'https://www.bilibili.com',
+                'Sec-Fetch-Site': 'same-site',
+                'Sec-Fetch-Mode': 'cors',
+                'Sec-Fetch-Dest': 'empty',
+            })
+            
+            # 获取视频信息
+            _, video_url, audio_url = self._get_video_info(url)
+            
+            # 设置下载headers
+            download_headers = self.base_headers.copy()
+            download_headers['Referer'] = url
+            
+            # 创建输出文件夹
+            folder_path = os.path.join(self.download_base_path, title)
+            self._create_folder(folder_path)
+            
+            # 设置临时文件路径
+            temp_video_path = os.path.join(folder_path, f'temp_video_{int(time.time())}.mp4')
+            temp_audio_path = os.path.join(folder_path, f'temp_audio_{int(time.time())}.mp3')
+            
+            try:
+                # 下载视频
+                print("下载视频流...")
+                video_content = self._download_media(video_url, download_headers, True)
+                with open(temp_video_path, 'wb') as f:
+                    f.write(video_content)
+                
+                # 下载音频
+                print("下载音频流...")
+                audio_content = self._download_media(audio_url, download_headers, False)
+                with open(temp_audio_path, 'wb') as f:
+                    f.write(audio_content)
+                
+                # 设置输出文件路径
+                output_video = os.path.join(folder_path, f'{title}.mp4')
+                output_audio = os.path.join(folder_path, f'{title}.mp3')
+                
+                # 合并文件
+                print("合并视频和音频...")
+                self._combine_video_audio(temp_video_path, temp_audio_path, output_video)
+                print("提取音频...")
+                self._extract_audio(output_video, output_audio)
+                
+            finally:
+                # 清理临时文件
+                print("清理临时文件...")
+                if os.path.exists(temp_video_path):
+                    os.remove(temp_video_path)
+                if os.path.exists(temp_audio_path):
+                    os.remove(temp_audio_path)
+            
+            print(f"下载完成: {title}")
+            
+        except Exception as e:
+            print(f"下载失败: {str(e)}")
+            import traceback
+            print(traceback.format_exc())
 
-    command = f'{ffmpeg_path} -i {title_1}.mp3 -i {title_1}.mp4 -c copy {folder_path}/{title_}.mp4 -loglevel quiet'
+def main():
+    downloader = BilibiliDownloader()
+    playlist_url = 'https://space.bilibili.com/318331/lists/4197997?type=season'
+    downloader.download_playlist(playlist_url)
 
-    os.system(command)
+if __name__ == "__main__":
+    main()
 
-    commandaudio = f'{ffmpeg_path} -i {folder_path}/{title_}.mp4 -vn {folder_path}/{title_}.mp3'
-
-    os.system(commandaudio)
-    # 显示合成文件的大小
-
-    print(f'{title_}  下载完成')
-
-    # 移除纯视频文件,
-    os.remove(f'{title_1}.mp4')
-    # 移除纯音频文件,
-    os.remove(f'{title_1}.mp3')
-
-def __init__main__():
-    # 使用方式可以按需修改地址即可
-    videoDownload1('https://www.bilibili.com/video/BV11H4y1s7Rb/?spm_id_from=333.1007.tianma.7-2-24.click&vd_source=432368ab052aeaee4df80d12175bfb3f')
-__init__main__()
-
-
-#基于此脚本可以二次扩展如创造一个窗口程序进行二次开发等需求时可行的
 
 

@@ -1,0 +1,5 @@
+/.venv
+/build
+/dist
+/爬虫/downloads
+/爬虫/utils/__pycache__
